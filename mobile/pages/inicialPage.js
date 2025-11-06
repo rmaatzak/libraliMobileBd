@@ -9,12 +9,17 @@ import {
   Dimensions,
   Image,
 } from "react-native";
+import { useFonts } from "expo-font";
 
 const { width, height } = Dimensions.get("window");
 const colors = ["#87CEFA", "#FFA500"]; // azul e laranja
 
 export default function InicialPage() {
   const navigation = useNavigation();
+
+  const [fontsLoaded] = useFonts({
+    Strawford: require("../assets/font/Strawford-Regular.otf"),
+  });
 
   // Criar círculos animados
   const circles = Array.from({ length: 15 }).map(() => ({
@@ -41,9 +46,12 @@ export default function InicialPage() {
       move();
       return null;
     });
-
     return () => animations.forEach((a) => a && a.stop && a.stop());
   }, []);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -67,7 +75,6 @@ export default function InicialPage() {
           ]}
         />
       ))}
-
       {/* Conteúdo centralizado */}
       <View style={styles.content}>
         <View style={styles.centerGroup}>
@@ -76,15 +83,12 @@ export default function InicialPage() {
             style={styles.logo}
             resizeMode="contain"
           />
-
-          <Text style={styles.welcome}>Bem-Vindo(a) ao nosso aplicativo.</Text>
-          <Text style={styles.subtext}>Aproveite</Text>
-
+          <Text style={styles.welcome}>A vida além dos sons.</Text>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate("Adulto")} // 🔹 Corrigido
+            onPress={() => navigation.navigate("Cadastro")}
           >
-            <Text style={styles.buttonText}>Continue</Text>
+            <Text style={styles.buttonText}>Iniciar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -115,22 +119,18 @@ const styles = StyleSheet.create({
     height: 250,
   },
   welcome: {
+    fontFamily: "Strawford",
     fontSize: 15,
     color: "#555",
     textAlign: "center",
     marginTop: -80,
   },
-  subtext: {
-    fontSize: 14,
-    color: "#777",
-    textAlign: "center",
-    marginTop: 4,
-  },
+  
   button: {
     backgroundColor: "#1A0978",
     paddingVertical: 10,
     paddingHorizontal: 40,
-    borderRadius: 25,
+    borderRadius: 15,
     shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowOffset: { width: 0, height: 4 },
@@ -139,6 +139,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonText: {
+    fontFamily: "Strawford",
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,

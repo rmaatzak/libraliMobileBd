@@ -1,11 +1,10 @@
-import * as React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-
-import InicialPage from './pages/inicialPage';
-import AdultoPage from "./pages/adultoPage"
-
+import Cadastro from "./pages/cadastro";
+import InicialPage from "./pages/inicialPage";
+import EscolhaPage from "./pages/escolhaPage";
 
 const Stack = createNativeStackNavigator();
 
@@ -18,13 +17,17 @@ export default function App() {
           component={InicialPage}
           options={{ headerShown: false }}
         />
- 
-      <Stack.Screen 
-          name="Adulto"
-          component={AdultoPage}
-          options={{ headerShown: false }}
-        /> 
 
+        <Stack.Screen
+          name="Escolha"
+          component={EscolhaPage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Cadastro"
+          component={Cadastro}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

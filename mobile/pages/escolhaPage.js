@@ -85,7 +85,7 @@ function FloatingBubbles() {
   );
 }
 
-export default function AdultoPage() {
+export default function EscolhaPage() {
   const navigation = useNavigation();
   const [selected, setSelected] = useState(null);
 
