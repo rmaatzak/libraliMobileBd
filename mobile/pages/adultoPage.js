@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigation } from "@react-navigation/native";
 import {
   View,
@@ -6,7 +6,84 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Animated,
+  Dimensions,
 } from "react-native";
+
+const { width, height } = Dimensions.get("window");
+const colors = ["#87CEFA", "#FFA500"]; // azul e laranja
+
+// 🔹 Fundo animado
+function FloatingBubbles() {
+  const circlesRef = useRef([]);
+
+  // Criar apenas uma vez
+  if (circlesRef.current.length === 0) {
+    circlesRef.current = Array.from({ length: 30 }).map(() => ({
+      x: new Animated.Value(Math.random() * width),
+      y: new Animated.Value(Math.random() * height), // 🔹 Começa visível
+      size: Math.random() * 40 + 20,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speed: Math.random() * 8000 + 10000, // 🔹 Subida mais rápida
+      offsetX: new Animated.Value(0),
+    }));
+  }
+
+  useEffect(() => {
+    circlesRef.current.forEach((circle) => {
+      const animate = () => {
+        Animated.parallel([
+          Animated.timing(circle.y, {
+            toValue: -150,
+            duration: circle.speed,
+            useNativeDriver: true,
+          }),
+          Animated.sequence([
+            Animated.timing(circle.offsetX, {
+              toValue: Math.random() * 25 - 12,
+              duration: circle.speed / 2,
+              useNativeDriver: true,
+            }),
+            Animated.timing(circle.offsetX, {
+              toValue: Math.random() * -25 + 12,
+              duration: circle.speed / 2,
+              useNativeDriver: true,
+            }),
+          ]),
+        ]).start(() => {
+          circle.y.setValue(height + Math.random() * 80);
+          circle.x.setValue(Math.random() * width);
+          animate();
+        });
+      };
+      animate();
+    });
+  }, []);
+
+  return (
+    <>
+      {circlesRef.current.map((circle, index) => (
+        <Animated.View
+          key={index}
+          style={[
+            styles.circle,
+            {
+              backgroundColor: circle.color,
+              width: circle.size,
+              height: circle.size,
+              borderRadius: circle.size / 2,
+              opacity: 0.35,
+              transform: [
+                { translateX: Animated.add(circle.x, circle.offsetX) },
+                { translateY: circle.y },
+              ],
+            },
+          ]}
+        />
+      ))}
+    </>
+  );
+}
 
 export default function AdultoPage() {
   const navigation = useNavigation();
@@ -22,118 +99,120 @@ export default function AdultoPage() {
 
   return (
     <View style={styles.container}>
-      {/* LOGO NO CANTO */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={require("../photos/logo1.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
+      {/* 🔹 Fundo animado fixo */}
+      <FloatingBubbles />
 
-      {/* CONTEÚDO CENTRAL */}
-      <View style={styles.centerContent}>
-        <Text style={styles.title}>Escolha a faixa etária</Text>
-
-        {/* OPÇÕES */}
-        <View style={styles.optionsContainer}>
-          {/* ADULTO */}
-          <TouchableOpacity
-            style={[
-              styles.option,
-              selected === "adulto" && styles.optionSelected,
-            ]}
-            onPress={() => setSelected("adulto")}
-            activeOpacity={0.8}
-          >
-            <View
-              style={[
-                styles.circle,
-                selected === "adulto" && styles.circleSelected,
-              ]}
-            >
-              <Image
-                source={require("../photos/adulto.png")}
-                style={styles.characterAdulto}
-                resizeMode="contain"
-              />
-            </View>
-            <Text style={styles.optionTitle}>Adulto</Text>
-            <Text style={styles.optionSubtitle}>(11 anos ou +)</Text>
-          </TouchableOpacity>
-
-          {/* KIDS */}
-          <TouchableOpacity
-            style={[
-              styles.option,
-              selected === "kids" && styles.optionSelected,
-            ]}
-            onPress={() => setSelected("kids")}
-            activeOpacity={0.8}
-          >
-            <View
-              style={[
-                styles.circle,
-                selected === "kids" && styles.circleSelected,
-              ]}
-            >
-              <Image
-                source={require("../photos/kids.png")}
-                style={styles.characterKids}
-                resizeMode="contain"
-              />
-            </View>
-            <Text style={styles.optionTitle}>Kids</Text>
-            <Text style={styles.optionSubtitle}>(4 aos 10 anos)</Text>
-          </TouchableOpacity>
+      {/* 🔹 Conteúdo principal */}
+      <View style={styles.content}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../photos/logo1.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
 
-        {/* BOTÃO CONFIRMAR */}
-        <TouchableOpacity
-          style={[styles.button, !selected && { opacity: 0.5 }]}
-          disabled={!selected}
-          onPress={handleConfirm}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonText}>Confirmar</Text>
-        </TouchableOpacity>
+        <View style={styles.centerContent}>
+          <Text style={styles.title}>Escolha a faixa etária</Text>
+
+          <View style={styles.optionsContainer}>
+            <TouchableOpacity
+              style={[
+                styles.option,
+                selected === "adulto" && styles.optionSelected,
+              ]}
+              onPress={() => setSelected("adulto")}
+              activeOpacity={0.8}
+            >
+              <View
+                style={[
+                  styles.circleOption,
+                  selected === "adulto" && styles.circleSelected,
+                ]}
+              >
+                <Image
+                  source={require("../photos/adulto.png")}
+                  style={styles.characterAdulto}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={styles.optionTitle}>Adulto</Text>
+              <Text style={styles.optionSubtitle}>(11 anos ou +)</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.option,
+                selected === "kids" && styles.optionSelected,
+              ]}
+              onPress={() => setSelected("kids")}
+              activeOpacity={0.8}
+            >
+              <View
+                style={[
+                  styles.circleOption,
+                  selected === "kids" && styles.circleSelected,
+                ]}
+              >
+                <Image
+                  source={require("../photos/kids.png")}
+                  style={styles.characterKids}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={styles.optionTitle}>Kids</Text>
+              <Text style={styles.optionSubtitle}>(4 aos 10 anos)</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, !selected && { opacity: 0.5 }]}
+            disabled={!selected}
+            onPress={handleConfirm}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.buttonText}>Confirmar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
 }
 
+// 🔹 Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
   },
-
-  // 🔹 LOGO NO CANTO
+  circle: {
+    position: "absolute",
+  },
+  content: {
+    flex: 1,
+  },
   logoContainer: {
     position: "absolute",
     top: 35,
     left: 20,
   },
   logo: {
-    width: 60, // 🔹 menor
+    marginTop: 25,
+    width: 60,
     height: 60,
   },
-
-  // 🔹 CONTEÚDO CENTRAL
   centerContent: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 40, // 🔹 sobe tudo um pouco
+    marginTop: 40,
   },
   title: {
     fontSize: 18,
     fontWeight: "600",
     color: "#222",
-    marginBottom: 40, // 🔹 mais espaço abaixo do texto
+    marginBottom: 40,
   },
-
-  // 🔹 OPÇÕES
   optionsContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -143,8 +222,7 @@ const styles = StyleSheet.create({
   option: {
     alignItems: "center",
   },
-  optionSelected: {},
-  circle: {
+  circleOption: {
     backgroundColor: "#00008B",
     width: 130,
     height: 130,
@@ -154,23 +232,20 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "transparent",
     marginBottom: 10,
-    overflow: "visible",
   },
   circleSelected: {
     borderColor: "#FFA500",
   },
-
-  // 🔹 PERSONAGENS
   characterAdulto: {
     width: 160,
     height: 160,
-    top: -10, // sai um pouco pra cima
+    top: -10,
   },
   characterKids: {
-    width: 140, // 🔹 ligeiramente menor pra caber certinho
-    height: 140,
-    top: -5, // levemente pra cima, mas centralizado visualmente
-  },
+  width: 185,  // 🔹 Aumentado
+  height: 185,
+      // 🔹 Sobe um pouquinho pra centralizar visualmente
+},
 
   optionTitle: {
     fontSize: 17,
@@ -181,8 +256,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#555",
   },
-
-  // 🔹 BOTÃO CONFIRMAR
   button: {
     backgroundColor: "#00008B",
     paddingVertical: 12,
