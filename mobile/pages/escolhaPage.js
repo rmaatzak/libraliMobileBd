@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -8,23 +8,23 @@ import {
   Image,
   Animated,
   Dimensions,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
-const colors = ["#87CEFA", "#FFA500"]; // azul e laranja
+const colors = ["#87CEFA", "#FFA500"];
 
-// 🔹 Fundo animado
 function FloatingBubbles() {
   const circlesRef = useRef([]);
 
-  // Criar apenas uma vez
   if (circlesRef.current.length === 0) {
     circlesRef.current = Array.from({ length: 30 }).map(() => ({
       x: new Animated.Value(Math.random() * width),
-      y: new Animated.Value(Math.random() * height), // 🔹 Começa visível
+      y: new Animated.Value(Math.random() * height),
       size: Math.random() * 40 + 20,
       color: colors[Math.floor(Math.random() * colors.length)],
-      speed: Math.random() * 8000 + 10000, // 🔹 Subida mais rápida
+      speed: Math.random() * 8000 + 10000,
       offsetX: new Animated.Value(0),
     }));
   }
@@ -87,22 +87,110 @@ function FloatingBubbles() {
 
 export default function EscolhaPage() {
   const navigation = useNavigation();
+  const route = useRoute();
+  
   const [selected, setSelected] = useState(null);
+  const [carregando, setCarregando] = useState(false);
+  
+  // ✅ Recebe os dados do cadastro
+  const dadosCadastro = route.params?.dadosCadastro;
 
-  const handleConfirm = () => {
-    if (selected === "adulto") {
-      navigation.navigate("AdultoTela");
-    } else if (selected === "kids") {
-      navigation.navigate("KidsTela");
+  // 🔍 DEBUG: Verifica se os dados chegaram
+  useEffect(() => {
+    console.log("🔍 Dados recebidos na EscolhaPage:", dadosCadastro);
+    
+    if (!dadosCadastro) {
+      console.warn("⚠️ ATENÇÃO: Nenhum dado foi recebido do Cadastro!");
+      Alert.alert(
+        "Erro",
+        "Dados do cadastro não foram recebidos. Volte e preencha novamente."
+      );
+    }
+  }, [dadosCadastro]);
+
+  // ✅ Função que salva no banco de dados COM a faixa etária
+  const handleConfirmar = async () => {
+    console.log("🔘 Botão Confirmar clicado!");
+    console.log("📊 Estado 'selected':", selected);
+    
+    if (!selected) {
+      Alert.alert("Atenção", "Selecione uma opção antes de confirmar!");
+      return;
+    }
+
+    // Verifica se tem dados do cadastro
+    if (!dadosCadastro || !dadosCadastro.nome || !dadosCadastro.email || !dadosCadastro.senha) {
+      Alert.alert("Erro", "Dados incompletos. Por favor, volte e preencha o cadastro novamente.");
+      console.error("❌ Dados do cadastro inválidos:", dadosCadastro);
+      return;
+    }
+
+    setCarregando(true);
+    console.log("⏳ Iniciando requisição...");
+
+    try {
+      // ✅ Determina a faixa etária baseado na seleção
+      const faixaEtaria = selected === "adulto" ? "adulto" : "kids";
+      
+      const dadosParaEnviar = {
+        nome: dadosCadastro.nome,
+        email: dadosCadastro.email,
+        senha: dadosCadastro.senha,
+        faixaEtaria: faixaEtaria,
+      };
+
+      console.log("📤 Enviando dados:", dadosParaEnviar);
+      
+      // ✅ AGORA SIM envia tudo para o backend
+      const response = await fetch("http://192.168.137.1:3000/api/usuarios/cadastro", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dadosParaEnviar),
+      });
+
+      console.log("📥 Status da resposta:", response.status);
+
+      const data = await response.json();
+      console.log("📥 Resposta do servidor:", data);
+
+      if (response.ok) {
+        console.log("✅ Cadastro realizado com sucesso!");
+        Alert.alert("Sucesso! 🎉", "Cadastro realizado com sucesso!", [
+          {
+            text: "OK",
+            onPress: () => {
+              console.log("🚀 Navegando para:", selected === "adulto" ? "AdultoTela" : "KidsTela");
+              // ✅ Navega para a tela correta baseado na escolha
+              if (selected === "adulto") {
+                navigation.navigate("AdultoTela");
+              } else {
+                navigation.navigate("KidsTela");
+              }
+            },
+          },
+        ]);
+      } else {
+        console.error("❌ Erro na resposta:", data);
+        Alert.alert("Erro", data.erro || "Erro ao cadastrar");
+      }
+    } catch (erro) {
+      console.error("❌ Erro na requisição:", erro);
+      Alert.alert(
+        "Erro de conexão",
+        "Não foi possível conectar ao servidor. Verifique se o backend está rodando.\n\nErro: " + erro.message
+      );
+    } finally {
+      setCarregando(false);
+      console.log("✅ Requisição finalizada");
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* 🔹 Fundo animado fixo */}
       <FloatingBubbles />
 
-      {/* 🔹 Conteúdo principal */}
       <View style={styles.content}>
         <View style={styles.logoContainer}>
           <Image
@@ -121,8 +209,12 @@ export default function EscolhaPage() {
                 styles.option,
                 selected === "adulto" && styles.optionSelected,
               ]}
-              onPress={() => setSelected("adulto")}
+              onPress={() => {
+                console.log("👤 Adulto selecionado");
+                setSelected("adulto");
+              }}
               activeOpacity={0.8}
+              disabled={carregando}
             >
               <View
                 style={[
@@ -145,8 +237,12 @@ export default function EscolhaPage() {
                 styles.option,
                 selected === "kids" && styles.optionSelected,
               ]}
-              onPress={() => setSelected("kids")}
+              onPress={() => {
+                console.log("👶 Kids selecionado");
+                setSelected("kids");
+              }}
               activeOpacity={0.8}
+              disabled={carregando}
             >
               <View
                 style={[
@@ -166,12 +262,19 @@ export default function EscolhaPage() {
           </View>
 
           <TouchableOpacity
-            style={[styles.button, !selected && { opacity: 0.5 }]}
-            disabled={!selected}
-            onPress={handleConfirm}
+            style={[
+              styles.button,
+              (!selected || carregando) && { opacity: 0.5 },
+            ]}
+            disabled={!selected || carregando}
+            onPress={handleConfirmar}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>Confirmar</Text>
+            {carregando ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>Confirmar</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -179,7 +282,6 @@ export default function EscolhaPage() {
   );
 }
 
-// 🔹 Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -242,11 +344,9 @@ const styles = StyleSheet.create({
     top: -10,
   },
   characterKids: {
-  width: 185,  // 🔹 Aumentado
-  height: 185,
-      // 🔹 Sobe um pouquinho pra centralizar visualmente
-},
-
+    width: 185,
+    height: 185,
+  },
   optionTitle: {
     fontSize: 17,
     fontWeight: "600",
@@ -269,3 +369,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+
+// escolhaPage.js

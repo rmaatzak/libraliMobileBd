@@ -5,6 +5,9 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Cadastro from "./pages/cadastro";
 import InicialPage from "./pages/inicialPage";
 import EscolhaPage from "./pages/escolhaPage";
+import KidsTela from "./pages/kidsTela";
+import AdultoTela from "./pages/adultoTela";
+
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +29,16 @@ export default function App() {
         <Stack.Screen
           name="Cadastro"
           component={Cadastro}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="AdultoTela"
+          component={AdultoTela}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="Kids"
+          component={KidsTela}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

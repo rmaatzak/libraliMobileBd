@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,12 +8,11 @@ import {
   Animated,
   Dimensions,
   Alert,
-  ActivityIndicator,
 } from "react-native";
 import { useFonts } from "expo-font";
 
 const { width, height } = Dimensions.get("window");
-const colors = ["#87CEFA", "#FFA500"]; // azul e laranja
+const colors = ["#87CEFA", "#FFA500"];
 
 function FloatingBubbles() {
   const circlesRef = useRef([]);
@@ -94,10 +93,9 @@ export default function Cadastro({ navigation }) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [carregando, setCarregando] = useState(false);
 
-  // Função para cadastrar usuário
-  const handleCadastro = async () => {
+  // ✅ Agora apenas valida e passa os dados para a próxima tela
+  const handleProsseguir = () => {
     // Validação básica
     if (!nome || !email || !senha) {
       Alert.alert("Atenção", "Preencha todos os campos!");
@@ -109,51 +107,14 @@ export default function Cadastro({ navigation }) {
       return;
     }
 
-    setCarregando(true);
-
-    try {
-      // Substitua localhost pelo IP do seu PC se estiver testando no celular
-      // Para descobrir: ipconfig (Windows) ou ifconfig (Mac/Linux)
-   const response = await fetch("http://192.168.137.1:3000/api/usuarios/cadastro", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    nome,
-    email,
-    senha,
-  }),
-});
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Alert.alert("Sucesso! 🎉", "Cadastro realizado com sucesso!", [
-          {
-            text: "OK",
-            onPress: () => {
-              // Limpa os campos
-              setNome("");
-              setEmail("");
-              setSenha("");
-              // Navega para a próxima tela
-              navigation.navigate("Escolha");
-            },
-          },
-        ]);
-      } else {
-        Alert.alert("Erro", data.erro || "Erro ao cadastrar");
-      }
-    } catch (erro) {
-      console.error("Erro na requisição:", erro);
-      Alert.alert(
-        "Erro de conexão",
-        "Não foi possível conectar ao servidor. Verifique se o backend está rodando (node server.js na pasta backend)."
-      );
-    } finally {
-      setCarregando(false);
-    }
+    // ✅ Passa os dados para a tela de escolha (NÃO salva ainda!)
+    navigation.navigate("Escolha", {
+      dadosCadastro: {
+        nome,
+        email,
+        senha,
+      },
+    });
   };
 
   if (!fontsLoaded) {
@@ -165,52 +126,44 @@ export default function Cadastro({ navigation }) {
       <FloatingBubbles />
 
       <View style={styles.content}>
-        <Text style={styles.title}>Create account</Text>
+        <Text style={styles.title}>Criar conta</Text>
         <Text style={styles.subtitle}>
-          Already have an account? <Text style={styles.link}>sign in</Text>
+          Já possui uma conta? <Text style={styles.link}>Entrar</Text>
         </Text>
 
         <View style={styles.form}>
           <TextInput
             style={styles.input}
-            placeholder="Name"
+            placeholder="Nome"
             placeholderTextColor="#888"
             value={nome}
             onChangeText={setNome}
-            editable={!carregando}
           />
           <TextInput
             style={styles.input}
-            placeholder="Email or phone"
+            placeholder="E-mail ou celular"
             placeholderTextColor="#888"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-            editable={!carregando}
           />
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder="Senha"
             placeholderTextColor="#888"
             secureTextEntry
             value={senha}
             onChangeText={setSenha}
-            editable={!carregando}
           />
         </View>
 
         <TouchableOpacity
-          style={[styles.button, carregando && styles.buttonDisabled]}
-          onPress={handleCadastro}
+          style={styles.button}
+          onPress={handleProsseguir}
           activeOpacity={0.8}
-          disabled={carregando}
         >
-          {carregando ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.buttonText}>Sign up ➜</Text>
-          )}
+          <Text style={styles.buttonText}>Prosseguir</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -278,7 +231,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
 });
+
+// Cadastro.js

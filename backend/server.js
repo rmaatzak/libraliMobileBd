@@ -6,9 +6,8 @@ const db = require("./db");
 const app = express();
 
 // Middlewares
-// Substitua a linha app.use(cors()); por:
 app.use(cors({
-  origin: '*', // Permite todas as origens (apenas para desenvolvimento)
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
@@ -19,18 +18,40 @@ app.get("/", (req, res) => {
   res.json({ mensagem: "API funcionando! 🚀" });
 });
 
-// ========== ROTA DE CADASTRO ==========
+// ========== ROTA DE CADASTRO COM FAIXA ETÁRIA ==========
 app.post("/api/usuarios/cadastro", (req, res) => {
-  const { nome, email, senha } = req.body;
+  const { nome, email, senha, faixaEtaria } = req.body;
 
-  console.log("📝 Recebido cadastro:", { nome, email });
+  console.log("📝 Recebido cadastro completo:");
+  console.log("   Nome:", nome);
+  console.log("   Email:", email);
+  console.log("   Senha:", senha ? "***" : "vazio");
+  console.log("   Faixa Etária:", faixaEtaria);
 
   // Validação
   if (!nome || !email || !senha) {
+    console.error("❌ Campos obrigatórios faltando");
     return res.status(400).json({ 
-      erro: "Todos os campos são obrigatórios" 
+      erro: "Nome, email e senha são obrigatórios" 
     });
   }
+
+  if (!faixaEtaria) {
+    console.error("❌ Faixa etária não foi enviada!");
+    return res.status(400).json({ 
+      erro: "Faixa etária é obrigatória" 
+    });
+  }
+
+  // Valida faixa etária
+  if (faixaEtaria !== "adulto" && faixaEtaria !== "kids") {
+    console.error("❌ Faixa etária inválida:", faixaEtaria);
+    return res.status(400).json({ 
+      erro: "Faixa etária inválida. Use 'adulto' ou 'kids'" 
+    });
+  }
+
+  console.log("✅ Validação passou! Verificando email...");
 
   // Verifica se o email já existe
   const verificaEmail = "SELECT * FROM usuarios WHERE email = ?";
@@ -41,23 +62,35 @@ app.post("/api/usuarios/cadastro", (req, res) => {
     }
 
     if (resultado.length > 0) {
+      console.log("⚠️ Email já cadastrado:", email);
       return res.status(400).json({ 
         erro: "Email já cadastrado" 
       });
     }
 
-    // Insere o novo usuário
-    const inserir = "INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)";
-    db.query(inserir, [nome, email, senha], (err, resultado) => {
+    console.log("✅ Email disponível! Inserindo no banco...");
+
+    // ✅ Insere o novo usuário COM faixa etária
+    const inserir = "INSERT INTO usuarios (nome, email, senha, faixaEtaria) VALUES (?, ?, ?, ?)";
+    
+    db.query(inserir, [nome, email, senha, faixaEtaria], (err, resultado) => {
       if (err) {
         console.error("❌ Erro ao cadastrar:", err);
-        return res.status(500).json({ erro: "Erro ao cadastrar usuário" });
+        console.error("   Detalhes do erro:", err.message);
+        console.error("   SQL:", err.sql);
+        return res.status(500).json({ erro: "Erro ao cadastrar usuário: " + err.message });
       }
 
-      console.log("✅ Usuário cadastrado com sucesso! ID:", resultado.insertId);
+      console.log("✅✅✅ USUÁRIO CADASTRADO COM SUCESSO! ✅✅✅");
+      console.log("   ID:", resultado.insertId);
+      console.log("   Nome:", nome);
+      console.log("   Email:", email);
+      console.log("   Faixa Etária:", faixaEtaria);
+      
       res.status(201).json({
         mensagem: "Usuário cadastrado com sucesso!",
-        id: resultado.insertId
+        id: resultado.insertId,
+        faixaEtaria: faixaEtaria
       });
     });
   });
@@ -68,4 +101,7 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   console.log(`📊 Teste a API: http://localhost:${PORT}`);
+  console.log(`✅ Backend pronto para receber cadastros!`);
 });
+
+// server.js
