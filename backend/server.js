@@ -1,48 +1,71 @@
+// backend/server.js
 const express = require("express");
 const cors = require("cors");
-const mysql = require("mysql");
+const db = require("./db");
 
 const app = express();
+
+// Middlewares
+// Substitua a linha app.use(cors()); por:
+app.use(cors({
+  origin: '*', // Permite todas as origens (apenas para desenvolvimento)
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json());
-app.use(cors());
 
-// 🔹 Conexão com o banco
-const db = mysql.createConnection({
-  host: "sql103.infinityfree.com",
-  user: "if0_40237895",
-  password: "WmQwcGmQLY",
-  database: "if0_40237895_librali", // ❗ sem espaço antes do nome
-  port: 3306,
+// ========== ROTA DE TESTE ==========
+app.get("/", (req, res) => {
+  res.json({ mensagem: "API funcionando! 🚀" });
 });
 
-// 🔹 Verificar conexão
-db.connect((err) => {
-  if (err) {
-    console.error("Erro ao conectar ao banco:", err);
-  } else {
-    console.log("Conectado ao banco de dados!");
-  }
-});
+// ========== ROTA DE CADASTRO ==========
+app.post("/api/usuarios/cadastro", (req, res) => {
+  const { nome, email, senha } = req.body;
 
-// 🔹 Rota para salvar a faixa etária
-app.post("/salvar-faixa-etaria", (req, res) => {
-  const { idUsuario, faixaEtaria } = req.body;
+  console.log("📝 Recebido cadastro:", { nome, email });
 
-  if (!idUsuario || !faixaEtaria) {
-    return res.status(400).json({ error: "idUsuario e faixaEtaria são obrigatórios" });
+  // Validação
+  if (!nome || !email || !senha) {
+    return res.status(400).json({ 
+      erro: "Todos os campos são obrigatórios" 
+    });
   }
 
-  const sql = "UPDATE usuario SET faixaEtaria = ? WHERE id = ?";
-  db.query(sql, [faixaEtaria, idUsuario], (err, result) => {
+  // Verifica se o email já existe
+  const verificaEmail = "SELECT * FROM usuarios WHERE email = ?";
+  db.query(verificaEmail, [email], (err, resultado) => {
     if (err) {
-      console.error("Erro ao atualizar:", err);
-      return res.status(500).json({ error: "Erro ao salvar no banco" });
+      console.error("❌ Erro ao verificar email:", err);
+      return res.status(500).json({ erro: "Erro no servidor" });
     }
-    return res.json({ success: true, message: "Faixa etária salva com sucesso!" });
+
+    if (resultado.length > 0) {
+      return res.status(400).json({ 
+        erro: "Email já cadastrado" 
+      });
+    }
+
+    // Insere o novo usuário
+    const inserir = "INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)";
+    db.query(inserir, [nome, email, senha], (err, resultado) => {
+      if (err) {
+        console.error("❌ Erro ao cadastrar:", err);
+        return res.status(500).json({ erro: "Erro ao cadastrar usuário" });
+      }
+
+      console.log("✅ Usuário cadastrado com sucesso! ID:", resultado.insertId);
+      res.status(201).json({
+        mensagem: "Usuário cadastrado com sucesso!",
+        id: resultado.insertId
+      });
+    });
   });
 });
 
-// 🔹 Iniciar servidor
-app.listen(3000, () => {
-  console.log("Servidor rodando na porta 3000");
+// Inicia o servidor
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+  console.log(`📊 Teste a API: http://localhost:${PORT}`);
 });

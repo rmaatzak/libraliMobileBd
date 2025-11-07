@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useFonts } from "expo-font";
 
@@ -92,6 +94,67 @@ export default function Cadastro({ navigation }) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [carregando, setCarregando] = useState(false);
+
+  // Função para cadastrar usuário
+  const handleCadastro = async () => {
+    // Validação básica
+    if (!nome || !email || !senha) {
+      Alert.alert("Atenção", "Preencha todos os campos!");
+      return;
+    }
+
+    if (senha.length < 6) {
+      Alert.alert("Atenção", "A senha deve ter pelo menos 6 caracteres!");
+      return;
+    }
+
+    setCarregando(true);
+
+    try {
+      // Substitua localhost pelo IP do seu PC se estiver testando no celular
+      // Para descobrir: ipconfig (Windows) ou ifconfig (Mac/Linux)
+   const response = await fetch("http://192.168.137.1:3000/api/usuarios/cadastro", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    nome,
+    email,
+    senha,
+  }),
+});
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Sucesso! 🎉", "Cadastro realizado com sucesso!", [
+          {
+            text: "OK",
+            onPress: () => {
+              // Limpa os campos
+              setNome("");
+              setEmail("");
+              setSenha("");
+              // Navega para a próxima tela
+              navigation.navigate("Escolha");
+            },
+          },
+        ]);
+      } else {
+        Alert.alert("Erro", data.erro || "Erro ao cadastrar");
+      }
+    } catch (erro) {
+      console.error("Erro na requisição:", erro);
+      Alert.alert(
+        "Erro de conexão",
+        "Não foi possível conectar ao servidor. Verifique se o backend está rodando (node server.js na pasta backend)."
+      );
+    } finally {
+      setCarregando(false);
+    }
+  };
 
   if (!fontsLoaded) {
     return null;
@@ -114,6 +177,7 @@ export default function Cadastro({ navigation }) {
             placeholderTextColor="#888"
             value={nome}
             onChangeText={setNome}
+            editable={!carregando}
           />
           <TextInput
             style={styles.input}
@@ -121,6 +185,9 @@ export default function Cadastro({ navigation }) {
             placeholderTextColor="#888"
             value={email}
             onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!carregando}
           />
           <TextInput
             style={styles.input}
@@ -129,15 +196,21 @@ export default function Cadastro({ navigation }) {
             secureTextEntry
             value={senha}
             onChangeText={setSenha}
+            editable={!carregando}
           />
         </View>
 
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("Escolha")}
+          style={[styles.button, carregando && styles.buttonDisabled]}
+          onPress={handleCadastro}
           activeOpacity={0.8}
+          disabled={carregando}
         >
-          <Text style={styles.buttonText}>Sign up ➜</Text>
+          {carregando ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.buttonText}>Sign up ➜</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -204,5 +277,8 @@ const styles = StyleSheet.create({
     fontFamily: "Strawford",
     color: "#fff",
     fontSize: 15,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });
