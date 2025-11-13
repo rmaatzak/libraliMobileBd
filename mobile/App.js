@@ -7,6 +7,7 @@ import InicialPage from "./pages/inicialPage";
 import EscolhaPage from "./pages/escolhaPage";
 import KidsTela from "./pages/kidsTela";
 import AdultoTela from "./pages/adultoTela";
+import Login from "./pages/login";
 
 
 const Stack = createNativeStackNavigator();
@@ -37,8 +38,13 @@ export default function App() {
           options={{ headerShown: false }}
         />
          <Stack.Screen
-          name="Kids"
+          name="KidsTela"
           component={KidsTela}
+          options={{ headerShown: false }}
+        />
+          <Stack.Screen
+          name="Login"
+          component={Login}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

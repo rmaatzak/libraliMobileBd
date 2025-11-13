@@ -7,11 +7,11 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
-  Alert,
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
 import { useFonts } from "expo-font";
+import CustomAlert from "./CustomAlert"; // ✅ IMPORTAR O COMPONENTE
 
 const { width, height } = Dimensions.get("window");
 const colors = ["#87CEFA", "#FFA500"];
@@ -86,28 +86,34 @@ function FloatingBubbles() {
   );
 }
 
-export default function Cadastro({ navigation }) {
+export default function Login({ navigation }) {
   const [fontsLoaded] = useFonts({
     Strawford: require("../assets/font/Strawford-Regular.otf"),
     Brockmann: require("../assets/font/Brockmann-Medium.otf"),
   });
 
-  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+
+  // ✅ ESTADOS PARA O ALERTA CUSTOMIZADO
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: "",
+    message: "",
+    type: "success",
+  });
 
   const contentPosition = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => {
+    const show = Keyboard.addListener("keyboardDidShow", () => {
       Animated.timing(contentPosition, {
         toValue: -80,
         duration: 250,
         useNativeDriver: true,
       }).start();
     });
-
-    const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => {
+    const hide = Keyboard.addListener("keyboardDidHide", () => {
       Animated.timing(contentPosition, {
         toValue: 0,
         duration: 250,
@@ -116,30 +122,61 @@ export default function Cadastro({ navigation }) {
     });
 
     return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
+      show.remove();
+      hide.remove();
     };
   }, []);
 
-  const handleProsseguir = () => {
-    if (!nome || !email || !senha) {
-      Alert.alert("Atenção", "Preencha todos os campos!");
-      return;
-    }
-
-    if (senha.length < 6) {
-      Alert.alert("Atenção", "A senha deve ter pelo menos 6 caracteres!");
-      return;
-    }
-
-    navigation.navigate("Escolha", {
-      dadosCadastro: { nome, email, senha },
-    });
+  // ✅ FUNÇÃO PARA MOSTRAR ALERTA CUSTOMIZADO
+  const showAlert = (title, message, type = "success") => {
+    setAlertConfig({ title, message, type });
+    setAlertVisible(true);
   };
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  const handleLogin = async () => {
+    if (!email || !senha) {
+      showAlert("Atenção", "Preencha todos os campos!", "warning");
+      return;
+    }
+
+    try {
+      console.log("🔐 Tentando fazer login...");
+      console.log("Email:", email);
+
+      const response = await fetch("http://192.168.137.1:3000/api/usuarios/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          senha: senha,
+        }),
+      });
+
+      const data = await response.json();
+      console.log("📦 Resposta do servidor:", data);
+
+      if (response.ok && data.usuario) {
+        console.log("✅ Login bem-sucedido!");
+        showAlert("Sucesso", `Bem-vindo(a), ${data.usuario.nome}!`, "success");
+        
+        // Navegar após 1.5 segundos
+        setTimeout(() => {
+          setAlertVisible(false);
+          navigation.navigate("Comeco");
+        }, 1500);
+      } else {
+        console.log("❌ Erro no login:", data.erro);
+        showAlert("Erro", data.erro || "E-mail ou senha incorretos!", "error");
+      }
+    } catch (error) {
+      console.error("❌ Erro ao conectar:", error);
+      showAlert("Erro", "Não foi possível conectar ao servidor.", "error");
+    }
+  };
+
+  if (!fontsLoaded) return null;
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -154,26 +191,18 @@ export default function Cadastro({ navigation }) {
             },
           ]}
         >
-          <Text style={styles.title}>Criar conta</Text>
-
+          <Text style={styles.title}>Entrar</Text>
           <Text style={styles.subtitle}>
-            Já possui uma conta?{" "}
+            Não possui uma conta?{" "}
             <Text
               style={styles.link}
-              onPress={() => navigation.navigate("Login")}
+              onPress={() => navigation.navigate("Cadastro")}
             >
-              Entrar
+              Criar conta
             </Text>
           </Text>
 
           <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Nome"
-              placeholderTextColor="#888"
-              value={nome}
-              onChangeText={setNome}
-            />
             <TextInput
               style={styles.input}
               placeholder="E-mail ou celular"
@@ -196,13 +225,22 @@ export default function Cadastro({ navigation }) {
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.button}
-              onPress={handleProsseguir}
+              onPress={handleLogin}
               activeOpacity={0.8}
             >
-              <Text style={styles.buttonText}>Prosseguir</Text>
+              <Text style={styles.buttonText}>Entrar</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
+
+        {/* ✅ ALERTA CUSTOMIZADO */}
+        <CustomAlert
+          visible={alertVisible}
+          title={alertConfig.title}
+          message={alertConfig.message}
+          type={alertConfig.type}
+          onClose={() => setAlertVisible(false)}
+        />
       </View>
     </TouchableWithoutFeedback>
   );
@@ -259,7 +297,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   button: {
-    backgroundColor: "#F89F30",
+    backgroundColor: "#00008B",
     paddingVertical: 12,
     paddingHorizontal: 28,
     borderRadius: 15,
