@@ -8,7 +8,8 @@ import {
   StatusBar,
 } from "react-native";
 
-export default function kidsTela() {
+// ✅ CORRIGIDO: mudei de "kidsTela" para "KidsTela" (primeira letra maiúscula)
+export default function KidsTela() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#E8F7FF" />

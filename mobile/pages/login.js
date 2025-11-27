@@ -11,12 +11,13 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { useFonts } from "expo-font";
-import CustomAlert from "./CustomAlert"; // ✅ IMPORTAR O COMPONENTE
+import CustomAlert from "./CustomAlert";
 
 const { width, height } = Dimensions.get("window");
 const colors = ["#87CEFA", "#FFA500"];
 
-function FloatingBubbles() {
+// ✅ EXPORTANDO FloatingBubbles separadamente
+export function FloatingBubbles() {
   const circlesRef = useRef([]);
 
   if (circlesRef.current.length === 0) {
@@ -95,7 +96,6 @@ export default function Login({ navigation }) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
-  // ✅ ESTADOS PARA O ALERTA CUSTOMIZADO
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     title: "",
@@ -127,7 +127,6 @@ export default function Login({ navigation }) {
     };
   }, []);
 
-  // ✅ FUNÇÃO PARA MOSTRAR ALERTA CUSTOMIZADO
   const showAlert = (title, message, type = "success") => {
     setAlertConfig({ title, message, type });
     setAlertVisible(true);
@@ -160,11 +159,12 @@ export default function Login({ navigation }) {
       if (response.ok && data.usuario) {
         console.log("✅ Login bem-sucedido!");
         showAlert("Sucesso", `Bem-vindo(a), ${data.usuario.nome}!`, "success");
-        
-        // Navegar após 1.5 segundos
+
         setTimeout(() => {
           setAlertVisible(false);
-          navigation.navigate("Comeco");
+          navigation.navigate("Interface", {
+            nome: data.usuario.nome,
+          });
         }, 1500);
       } else {
         console.log("❌ Erro no login:", data.erro);
@@ -233,7 +233,6 @@ export default function Login({ navigation }) {
           </View>
         </Animated.View>
 
-        {/* ✅ ALERTA CUSTOMIZADO */}
         <CustomAlert
           visible={alertVisible}
           title={alertConfig.title}

@@ -14,7 +14,7 @@ import {
 import { useFonts } from "expo-font";
 
 const { width, height } = Dimensions.get("window");
-const colors = ["#87CEFA", "#FFA500"];
+const colors = ["#87CEFA", "#"];
 
 function FloatingBubbles() {
   const circlesRef = useRef([]);
