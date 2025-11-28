@@ -32,7 +32,7 @@ const [selected, setSelected] = useState("Cursos"); // ✅ CORRIGIDO: mudei de "
       {/* HEADER ROSA */}
       <View style={styles.header}>
           <Image
-           source={require("../assets/logoBranca.png")}
+           source={require("../assets/logo.png")}
           style={styles.headerImage}
         />
       </View>
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   header: {
     width: "100%",
     height: 230,
-    backgroundColor: "#00008B",
+    backgroundColor: "#00008b27",
     justifyContent: "center",
     alignItems: "center",
   },
