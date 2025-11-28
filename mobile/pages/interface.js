@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from "react-native";
+import { useFonts } from "expo-font";
+
 
 export default function Interface({route}) {
-  const [selected, setSelected] = useState("Course");
- const { nome } = route.params || { nome: "Usuário" };
+const [selected, setSelected] = useState("Cursos"); // ✅ CORRIGIDO: mudei de "Course" para "Cursos"
+  const { nome } = route.params || { nome: "Usuário" };
   const contents = {
     Cursos: [
       { color: "#C7E6FF", img: "https://cdn-icons-png.flaticon.com/512/706/706830.png" },
@@ -19,13 +21,18 @@ export default function Interface({route}) {
     ],
   };
 
+  const [fontsLoaded] = useFonts({
+      Strawford: require("../assets/font/Strawford-Regular.otf"),
+      Brockmann: require("../assets/font/Brockmann-Medium.otf")
+    });
+  
   return (
     <ScrollView style={styles.container}>
 
       {/* HEADER ROSA */}
       <View style={styles.header}>
-        <Image
-          source={{ uri: "https://cdn-icons-png.flaticon.com/512/9469/9469833.png" }}
+          <Image
+           source={require("../assets/logoBranca.png")}
           style={styles.headerImage}
         />
       </View>
@@ -63,8 +70,8 @@ export default function Interface({route}) {
 
         {/* TRENDING (AGORA DENTRO DA MESMA CAIXA BRANCA) */}
         <View style={styles.trendingHeader}>
-          <Text style={styles.trendingTitle}>Trending</Text>
-          <Text style={styles.seeDetails}>see details</Text>
+          <Text style={styles.trendingTitle}>Jogos</Text>
+          <Text style={styles.seeDetails}>ver mais</Text>
         </View>
 
         <View style={styles.trendingItem}>
@@ -98,14 +105,11 @@ const styles = StyleSheet.create({
   header: {
     width: "100%",
     height: 230,
-    backgroundColor: "#F7C8C8",
+    backgroundColor: "#00008B",
     justifyContent: "center",
     alignItems: "center",
   },
-  headerImage: {
-    width: 170,
-    height: 170,
-  },
+
 
   /* CAIXA BRANCA ÚNICA */
   whiteBox: {
@@ -117,29 +121,48 @@ const styles = StyleSheet.create({
     paddingTop: 35,
   },
 
+    headerImage: {
+    width: 200,
+    height: 200,
+    marginRight:10,
+  },
+
   hiText: {
-    fontSize: 28,
-    fontWeight: "bold",
+    fontSize: 30,
+    marginBottom:7,
+    marginTop: 20,
+    fontFamily:"Brockmann",
   },
   subText: {
-    fontSize: 15,
+    fontSize: 18,
     opacity: 0.7,
     marginBottom: 20,
+        fontFamily:"Strawford"
+
   },
 
   sectionsRow: {
     flexDirection: "row",
     gap: 25,
     marginBottom: 20,
+    justifyContent:"center",
+    alignItems:"center"
   },
   sectionText: {
-    fontSize: 17,
+    fontSize: 15,
     opacity: 0.5,
+    fontFamily:"Brockmann"
+
   },
   sectionActive: {
     opacity: 1,
-    color: "#FF7C7C",
-    fontWeight: "bold",
+    color: "#00008B",
+    backgroundColor:"#00008b27",
+    borderRadius:10,
+    paddingLeft:10,
+    paddingRight:10,
+    paddingTop:5,
+    paddingBottom:5,
   },
 
   card: {

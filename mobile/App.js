@@ -3,7 +3,6 @@ import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import SplashScreen from "./pages/splashScreen";
 import Cadastro from "./pages/cadastro";
 import Login from "./pages/login";
 import InicialPage from "./pages/inicialPage";
@@ -17,14 +16,8 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Splash">
-        {/* ✅ TELA INICIAL: Verifica se está logado */}
-        <Stack.Screen
-          name="Splash"
-          component={SplashScreen}
-          options={{ headerShown: false }}
-        />
-
+      <Stack.Navigator initialRouteName="Inicial">
+      
         <Stack.Screen
           name="Inicial"
           component={InicialPage}

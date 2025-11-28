@@ -14,7 +14,12 @@ import {
 import { useFonts } from "expo-font";
 
 const { width, height } = Dimensions.get("window");
-const colors = ["#87CEFA", "#"];
+
+// Funções auxiliares para responsividade
+const wp = pct => (width * pct) / 100;
+const hp = pct => (height * pct) / 100;
+
+const colors = ["#87CEFA", "#87CEFA"];
 
 function FloatingBubbles() {
   const circlesRef = useRef([]);
@@ -23,7 +28,7 @@ function FloatingBubbles() {
     circlesRef.current = Array.from({ length: 25 }).map(() => ({
       x: new Animated.Value(Math.random() * width),
       y: new Animated.Value(Math.random() * height),
-      size: Math.random() * 35 + 20,
+      size: Math.random() * wp(6) + wp(4),
       color: colors[Math.floor(Math.random() * colors.length)],
       speed: Math.random() * 9000 + 9000,
       offsetX: new Animated.Value(0),
@@ -31,7 +36,7 @@ function FloatingBubbles() {
   }
 
   useEffect(() => {
-    circlesRef.current.forEach((circle) => {
+    circlesRef.current.forEach(circle => {
       const animate = () => {
         Animated.parallel([
           Animated.timing(circle.y, {
@@ -101,7 +106,7 @@ export default function Cadastro({ navigation }) {
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => {
       Animated.timing(contentPosition, {
-        toValue: -80,
+        toValue: -hp(10),
         duration: 250,
         useNativeDriver: true,
       }).start();
@@ -220,36 +225,38 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 30,
+    paddingHorizontal: wp(8),
   },
   title: {
     fontFamily: "Brockmann",
-    fontSize: 28,
+    fontSize: wp(7.2),
     color: "#000",
-    marginBottom: 10,
+    marginBottom: hp(1),
   },
   subtitle: {
     fontFamily: "Strawford",
     color: "#666",
-    marginBottom: 40,
+    marginBottom: hp(5),
+    fontSize: wp(4.3),
   },
   link: {
     color: "#00008B",
     fontWeight: "500",
+    fontSize: wp(4.3),
   },
   form: {
     width: "100%",
     alignItems: "center",
-    marginBottom: 60,
+    marginBottom: hp(7),
   },
   input: {
     width: "100%",
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 18,
-    fontSize: 16,
+    borderRadius: wp(3),
+    padding: wp(4),
+    marginBottom: hp(2),
+    fontSize: wp(4.3),
     backgroundColor: "#fff",
     elevation: 1,
     fontFamily: "Strawford",
@@ -260,14 +267,14 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#F89F30",
-    paddingVertical: 12,
-    paddingHorizontal: 28,
-    borderRadius: 15,
+    paddingVertical: hp(1.8),
+    paddingHorizontal: wp(7),
+    borderRadius: wp(4),
     elevation: 2,
   },
   buttonText: {
     fontFamily: "Strawford",
     color: "#fff",
-    fontSize: 15,
+    fontSize: wp(4.3),
   },
 });
