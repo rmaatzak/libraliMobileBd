@@ -11,7 +11,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { useFonts } from "expo-font";
-import CustomAlert from "./CustomAlert";
+import CustomAlert from "../auxilio/CustomAlert";
 
 const { width, height } = Dimensions.get("window");
 const colors = ["#87CEFA", "#FFA500"];
@@ -142,7 +142,7 @@ export default function Login({ navigation }) {
       console.log("🔐 Tentando fazer login...");
       console.log("Email:", email);
 
-      const response = await fetch("http://192.168.137.1:3000/api/usuarios/login", {
+      const response = await fetch("http://192.168.15.136:3000/api/usuarios/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

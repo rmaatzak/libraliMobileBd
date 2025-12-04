@@ -1,222 +1,509 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from "react-native";
-import { useFonts } from "expo-font";
+// interface.js
+import React, { useRef, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  StatusBar,
+  Platform,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
+import MenuLateral from "../auxilio/menuLateral";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
+// IMPORTANTE: Altere este caminho para o local correto da sua imagem
+import Logo from "../assets/logoBR.png"; // <-- Atualize este caminho!
 
-export default function Interface({route}) {
-const [selected, setSelected] = useState("Cursos"); // ✅ CORRIGIDO: mudei de "Course" para "Cursos"
-  const { nome } = route.params || { nome: "Usuário" };
-  const contents = {
-    Cursos: [
-      { color: "#C7E6FF", img: "https://cdn-icons-png.flaticon.com/512/706/706830.png" },
-    ],
-    Livros: [
-      { color: "#FFD6D6", img: "https://cdn-icons-png.flaticon.com/512/747/747086.png" },
-    ],
-    Videos: [
-      { color: "#C4F0D9", img: "https://cdn-icons-png.flaticon.com/512/4105/4105456.png" },
-    ],
-    "Saiba mais": [
-      { color: "#E3F2C1", img: "https://cdn-icons-png.flaticon.com/512/2729/2729007.png" },
-    ],
+// NÃO PRECISA IMPORTAR CADA IMAGEM INDIVIDUALMENTE - VAMOS USAR require()
+
+export default function Interface({ route, navigation }) {
+  const { nome } = route?.params || { nome: "Usuário" };
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [headerHeight] = useState(280);
+  const [minHeaderHeight] = useState(100);
+
+  // Configuração da animação do header - agora fica fixo após certo ponto
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [0, 180],
+    outputRange: [0, -180],
+    extrapolate: "clamp",
+  });
+
+  // Header diminui até um tamanho mínimo e para
+  const headerHeightAnimated = scrollY.interpolate({
+    inputRange: [0, 180, 500],
+    outputRange: [headerHeight, minHeaderHeight, minHeaderHeight], // Fica fixo em minHeaderHeight
+    extrapolate: "clamp",
+  });
+
+  // Texto desaparece completamente
+  const textOpacity = scrollY.interpolate({
+    inputRange: [0, 80, 160],
+    outputRange: [1, 0.1, 0],
+    extrapolate: "clamp",
+  });
+
+  const textTranslateY = scrollY.interpolate({
+    inputRange: [0, 180],
+    outputRange: [0, -80],
+    extrapolate: "clamp",
+  });
+
+  // Opacidade da logo (sempre visível)
+  const logoOpacity = scrollY.interpolate({
+    inputRange: [0, 180],
+    outputRange: [0.8, 1], // Fica mais visível quando header está menor
+    extrapolate: "clamp",
+  });
+
+  // Logo se move para cima para se centralizar no header menor
+  const logoTranslateY = scrollY.interpolate({
+    inputRange: [0, 180],
+    outputRange: [0, -50],
+    extrapolate: "clamp",
+  });
+
+  // Menu lateral também se move junto com a logo
+  const menuTranslateY = scrollY.interpolate({
+    inputRange: [0, 180],
+    outputRange: [0, -50],
+    extrapolate: "clamp",
+  });
+
+  const navegarPara = (tela) => {
+    navigation.navigate(tela);
   };
 
-  const [fontsLoaded] = useFonts({
-      Strawford: require("../assets/font/Strawford-Regular.otf"),
-      Brockmann: require("../assets/font/Brockmann-Medium.otf")
-    });
-  
+  // Dados dos 3 cards - COM LINKAMENTO DE IMAGENS VIA require()
+  const cardsData = [
+    {
+      id: 1,
+      titulo: "Cursos",
+      descricao: "Aprenda Libras passo a passo",
+      imagem: require("../assets/cursos.png"), // LINKAMENTO DIRETO
+      cor: "#F89F30",
+      tela: "Cursos",
+    },
+    {
+      id: 2,
+      titulo: "Jogos",
+      descricao: "Aprenda de forma divertida",
+      imagem: require("../assets/jogos.png"), // LINKAMENTO DIRETO
+      cor: "#4169E1",
+      tela: "Jogos",
+    },
+    {
+      id: 3,
+      titulo: "Outros",
+      descricao: "Mais recursos e ferramentas",
+      imagem: require("../assets/outros.png"), // LINKAMENTO DIRETO
+      cor: "#F89F30",
+      tela: "Outros",
+    },
+  ];
+
+  // Dados dos valores - COM LINKAMENTO DE IMAGENS VIA require()
+  const valoresData = [
+    {
+      id: 1,
+      titulo: "Inclusão",
+      imagem: require("../assets/inclusao.png"), // LINKAMENTO DIRETO
+    },
+    {
+      id: 2,
+      titulo: "Educação",
+      imagem: require("../assets/educacao.png"), // LINKAMENTO DIRETO
+    },
+    {
+      id: 3,
+      titulo: "Comunidade",
+      imagem: require("../assets/comunidade.png"), // LINKAMENTO DIRETO
+    },
+  ];
+
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#00008B" />
 
-      {/* HEADER ROSA */}
-      <View style={styles.header}>
-          <Image
-           source={require("../assets/logo.png")}
-          style={styles.headerImage}
-        />
-      </View>
+      {/* HEADER ANIMADO - AGORA FIXO NO TOPO */}
+      <Animated.View
+        style={[
+          styles.header,
+          {
+            height: headerHeightAnimated,
+          },
+        ]}
+      >
+        {/* Logo que fica sempre visível */}
+        <Animated.View
+          style={[
+            styles.logoContainer,
+            {
+              opacity: logoOpacity,
+              transform: [{ translateY: logoTranslateY }],
+            },
+          ]}
+        >
+          <Image source={Logo} style={styles.logo} resizeMode="contain" />
+        </Animated.View>
 
-      {/* CAIXA BRANCA ÚNICA */}
-      <View style={styles.whiteBox}>
+        {/* Texto que desaparece ao rolar */}
+        <Animated.View
+          style={[
+            styles.textContainer,
+            {
+              opacity: textOpacity,
+              transform: [{ translateY: textTranslateY }],
+            },
+          ]}
+        >
+          <Text style={styles.hi}>Olá, {nome}</Text>
+          <Text style={styles.question}>O que você gostaria de hoje?</Text>
+        </Animated.View>
+      </Animated.View>
 
-        <Text style={styles.hiText}>Olá, {nome}</Text>
-        <Text style={styles.subText}>O que gostaria de fazer hoje?</Text>
+      {/* MENU LATERAL - AGORA COM ANIMAÇÃO SIMILAR À LOGO */}
+      <Animated.View
+        style={[
+          styles.menuContainer,
+          {
+            transform: [{ translateY: menuTranslateY }],
+          },
+        ]}
+      >
+        <MenuLateral navigation={navigation} />
+      </Animated.View>
 
-        {/* FILTROS */}
-        <View style={styles.sectionsRow}>
-          {["Cursos", "Livros", "Videos", "Saiba mais"].map((item) => (
-            <TouchableOpacity key={item} onPress={() => setSelected(item)}>
-              <Text
-                style={[
-                  styles.sectionText,
-                  selected === item && styles.sectionActive,
-                ]}
+      {/* CONTEÚDO PRINCIPAL COM SCROLL */}
+      <Animated.ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: headerHeight + 20 },
+        ]}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+      >
+        {/* SEÇÃO: VAMOS PRATICAR? */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Vamos praticar?</Text>
+            <Text style={styles.sectionSubtitle}>
+              Escolha uma das opções abaixo para começar sua jornada em Libras
+            </Text>
+          </View>
+
+          {/* 3 CARDS LADO A LADO - COM IMAGENS VIA require() */}
+          <View style={styles.cardsRow}>
+            {cardsData.map((card) => (
+              <TouchableOpacity
+                key={card.id}
+                style={[styles.card, { borderTopColor: card.cor }]}
+                onPress={() => navegarPara(card.tela)}
+                activeOpacity={0.8}
               >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <View
+                  style={[
+                    styles.cardIconContainer,
+                    { backgroundColor: `${card.cor}15` },
+                  ]}
+                >
+                  {/* IMAGEM VIA require() */}
+                  <Image
+                    source={card.imagem}
+                    style={styles.cardImage}
+                    resizeMode="contain"
+                  />
+                </View>
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>{card.titulo}</Text>
+                  <Text style={styles.cardDescription}>{card.descricao}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
-        {/* CARDS */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {contents[selected].map((c, index) => (
-            <View key={index} style={[styles.card, { backgroundColor: c.color }]}>
-              <Image source={{ uri: c.img }} style={styles.cardImage} />
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* TRENDING (AGORA DENTRO DA MESMA CAIXA BRANCA) */}
-        <View style={styles.trendingHeader}>
-          <Text style={styles.trendingTitle}>Jogos</Text>
-          <Text style={styles.seeDetails}>ver mais</Text>
-        </View>
-
-        <View style={styles.trendingItem}>
-          <View style={styles.iconCircle}>
+        {/* SEÇÃO: SOBRE NÓS */}
+        <View style={styles.aboutContainer}>
+          <View style={styles.aboutHeader}>
+            {/* IMAGEM VIA require() */}
             <Image
-              source={{ uri: "https://cdn-icons-png.flaticon.com/512/2966/2966489.png" }}
-              style={styles.iconTrending}
+              source={require("../assets/logoOriginal.png")} // LINKAMENTO DIRETO
+              style={styles.aboutIcon}
+              resizeMode="contain"
             />
           </View>
 
-          <View>
-            <Text style={styles.trendingItemTitle}>Keep Your Body Healthy</Text>
-            <Text style={styles.trendingDesc}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-              eiusmod tempor incididunt.
+          <View style={styles.aboutContent}>
+            <Text style={styles.aboutText}>
+              Somos uma plataforma dedicada ao ensino da Língua Brasileira de
+              Sinais (Libras) de forma acessível, inclusiva e divertida. Nosso
+              objetivo é promover a inclusão social através do aprendizado da
+              comunicação por sinais.
             </Text>
+
+            {/* VALORES COM IMAGENS VIA require() */}
+            <View style={styles.valuesContainer}>
+              {valoresData.map((valor) => (
+                <View key={valor.id} style={styles.valueItem}>
+                  {/* IMAGEM VIA require() */}
+                  <Image
+                    source={valor.imagem}
+                    style={styles.valueImage}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.valueTitle}>{valor.titulo}</Text>
+                </View>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={styles.learnMoreButton}
+              onPress={() => navigation.navigate("Sobre")}
+            >
+              <Text style={styles.learnMoreText}>
+                Conheça nossa história completa!
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-      </View>
-    </ScrollView>
+        {/* ESPAÇO FINAL */}
+        <View style={styles.footerSpace} />
+      </Animated.ScrollView>
+    </View>
   );
 }
 
+const { width } = Dimensions.get("window");
+const cardWidth = (width - 60) / 3; // 3 cards com espaçamento
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
+    flex: 1,
+    backgroundColor: "#ffffff",
   },
-
-  /* HEADER ROSA */
   header: {
-    width: "100%",
-    height: 230,
-    backgroundColor: "#00008b27",
-    justifyContent: "center",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#00008B",
+    paddingTop: Platform.OS === "ios" ? 44 : StatusBar.currentHeight + 10,
+    borderBottomLeftRadius: 45,
+    borderBottomRightRadius: 45,
+    paddingHorizontal: 20,
+    zIndex: 1000,
+    overflow: "hidden",
     alignItems: "center",
   },
-
-
-  /* CAIXA BRANCA ÚNICA */
-  whiteBox: {
-    backgroundColor: "#fff",
-    marginTop: -40,
-    borderTopLeftRadius: 55,
-    borderTopRightRadius: 55,
-    padding: 25,
-    paddingTop: 35,
+  logoContainer: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? 50 : 60,
+    left: 20,
+    zIndex: 1001,
   },
-
-    headerImage: {
-    width: 200,
-    height: 200,
-    marginRight:10,
+  logo: {
+    width: 35,
+    height: 35,
+    marginTop: 25,
   },
-
-  hiText: {
-    fontSize: 30,
-    marginBottom:7,
-    marginTop: 20,
-    fontFamily:"Brockmann",
+  textContainer: {
+    alignItems: "center",
+    marginTop: 80,
+    marginBottom: 40,
+    marginTop: 100,
   },
-  subText: {
-    fontSize: 18,
-    opacity: 0.7,
-    marginBottom: 20,
-        fontFamily:"Strawford"
-
+  hi: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 6,
   },
-
-  sectionsRow: {
-    flexDirection: "row",
-    gap: 25,
-    marginBottom: 20,
-    justifyContent:"center",
-    alignItems:"center"
-  },
-  sectionText: {
+  question: {
     fontSize: 15,
-    opacity: 0.5,
-    fontFamily:"Brockmann"
-
+    color: "#dcdcdc",
+    textAlign: "center",
   },
-  sectionActive: {
-    opacity: 1,
-    color: "#00008B",
-    backgroundColor:"#00008b27",
-    borderRadius:10,
-    paddingLeft:10,
-    paddingRight:10,
-    paddingTop:5,
-    paddingBottom:5,
+  // Container para o menu lateral - agora animado
+  menuContainer: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? 50 : 60,
+    right: 0,
+    zIndex: 1002,
+    paddingTop: 35,
+    marginTop: -35,
   },
-
-  card: {
-    width: 160,
-    height: 190,
-    borderRadius: 30,
-    marginRight: 20,
-    justifyContent: "center",
-    alignItems: "center",
+  scrollContainer: {
+    flex: 1,
   },
-
-  cardImage: {
-    width: 120,
-    height: 120,
+  scrollContent: {
+    paddingBottom: 30,
   },
-
-  trendingHeader: {
+  sectionContainer: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  sectionHeader: {
+    marginBottom: 25,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 8,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 20,
+  },
+  cardsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingTop: 30,
-    marginBottom: 15,
+    marginBottom: 30,
   },
-  trendingTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-  },
-  seeDetails: {
-    opacity: 0.5,
-  },
-
-  trendingItem: {
-    flexDirection: "row",
-    gap: 15,
+  card: {
+    width: cardWidth,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 15,
     alignItems: "center",
+    borderTopWidth: 4,
+    borderTopColor: "#4169E1",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  iconCircle: {
-    width: 55,
-    height: 55,
+  cardIconContainer: {
+    width: 60,
+    height: 60,
     borderRadius: 15,
-    backgroundColor: "#FFDFCC",
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 12,
   },
-  iconTrending: {
-    width: 30,
-    height: 30,
+  // Estilo para a imagem do card
+  cardImage: {
+    width: 40,
+    height: 40,
   },
-
-  trendingItemTitle: {
+  cardContent: {
+    alignItems: "center",
+  },
+  cardTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 6,
+    textAlign: "center",
   },
-  trendingDesc: {
-    width: 250,
-    opacity: 0.6,
+  cardDescription: {
+    fontSize: 12,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 16,
+  },
+  aboutContainer: {
+    backgroundColor: "#F8F9FA",
+    marginHorizontal: 20,
+    marginTop: 30,
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  aboutHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  // Estilo para o ícone da seção "Sobre Nós"
+  aboutIcon: {
+    width: 170,
+    height: 100,
+    alignItems: "center",
+    display: "flex",
+    marginLeft: 55,
+  },
+  aboutTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#00008B",
+    marginLeft: 10,
+  },
+  aboutContent: {
+    marginBottom: 10,
+  },
+  aboutText: {
+    fontSize: 15,
+    color: "#555",
+    lineHeight: 22,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  valuesContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 25,
+  },
+  valueItem: {
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    width: "37%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
+    right: 15,
+  },
+  // Estilo para as imagens dos valores
+  valueImage: {
+    width: 50,
+    height: 50,
+    marginBottom: 8,
+  },
+  valueTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#333",
+    marginTop: 8,
+  },
+  learnMoreButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderWidth: 1.5,
+    borderColor: "#00008B",
+    borderRadius: 12,
+  },
+  learnMoreText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#00008B",
+    marginRight: 8,
+  },
+  footerSpace: {
+    height: 50,
   },
 });

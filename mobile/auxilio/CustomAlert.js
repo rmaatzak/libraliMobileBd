@@ -12,7 +12,19 @@ import {
 const CustomAlert = ({ visible, title, message, onClose, type = 'success' }) => {
   const scaleValue = React.useRef(new Animated.Value(0)).current;
 
- 
+  React.useEffect(() => {
+    if (visible) {
+      Animated.spring(scaleValue, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      scaleValue.setValue(0);
+    }
+  }, [visible]);
+
   // ✅ AQUI VOCÊ COLOCA O CAMINHO DAS SUAS IMAGENS
   const getImageAndColor = () => {
     switch (type) {

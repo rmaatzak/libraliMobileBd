@@ -10,13 +10,14 @@ import EscolhaPage from "./pages/escolhaPage";
 import KidsTela from "./pages/kidsTela";
 import AdultoTela from "./pages/adultoTela";
 import Interface from "./pages/interface";
+import MenuLateral from "./auxilio/menuLateral";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Inicial">
+      <Stack.Navigator initialRouteName="Interface">
       
         <Stack.Screen
           name="Inicial"
@@ -63,6 +64,15 @@ export default function App() {
         <Stack.Screen
           name="Interface"
           component={Interface}
+          options={{ 
+            headerShown: false,
+            gestureEnabled: false // Impede voltar com gesto após login
+          }}
+        />
+
+          <Stack.Screen
+          name="MenuLateral"
+          component={MenuLateral}
           options={{ 
             headerShown: false,
             gestureEnabled: false // Impede voltar com gesto após login
