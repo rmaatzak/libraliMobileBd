@@ -11,6 +11,7 @@ import KidsTela from "./pages/kidsTela";
 import AdultoTela from "./pages/adultoTela";
 import Interface from "./pages/interface";
 import MenuLateral from "./auxilio/menuLateral";
+import Jogos from "./pages/jogos";
 
 const Stack = createNativeStackNavigator();
 
@@ -18,7 +19,6 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Interface">
-      
         <Stack.Screen
           name="Inicial"
           component={InicialPage}
@@ -46,38 +46,48 @@ export default function App() {
         <Stack.Screen
           name="AdultoTela"
           component={AdultoTela}
-          options={{ 
+          options={{
             headerShown: false,
-            gestureEnabled: false // Impede voltar com gesto após login
+            gestureEnabled: false, // Impede voltar com gesto após login
           }}
         />
 
         <Stack.Screen
           name="KidsTela"
           component={KidsTela}
-          options={{ 
+          options={{
             headerShown: false,
-            gestureEnabled: false // Impede voltar com gesto após login
+            gestureEnabled: false, // Impede voltar com gesto após login
           }}
         />
 
         <Stack.Screen
           name="Interface"
           component={Interface}
-          options={{ 
+          options={{
             headerShown: false,
-            gestureEnabled: false // Impede voltar com gesto após login
+            gestureEnabled: false, // Impede voltar com gesto após login
           }}
         />
 
-          <Stack.Screen
+        <Stack.Screen
           name="MenuLateral"
           component={MenuLateral}
-          options={{ 
+          options={{
             headerShown: false,
-            gestureEnabled: false // Impede voltar com gesto após login
+            gestureEnabled: false, // Impede voltar com gesto após login
           }}
         />
+
+        <Stack.Screen
+          name="Jogos"
+          component={Jogos}
+          options={{
+            headerShown: false,
+            gestureEnabled: false,
+          }}
+        />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );
