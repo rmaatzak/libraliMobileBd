@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useFonts } from "expo-font";
 import {
   View,
   Text,
@@ -32,10 +33,10 @@ import Logo from "../assets/logoBR.png";
 
 // Importar os vídeos - ATUALIZE ESTES CAMINHOS COM SEUS VÍDEOS REAIS
 const videos = {
-  letraA: require("../assets/videos/letra_a.mp4"),
-  letraB: require("../assets/videos/letra_a.mp4"),
-  letraC: require("../assets/videos/letra_a.mp4"),
-  letraD: require("../assets/videos/letra_a.mp4"),
+  letraA: require("../assets/videos/letraA.mp4"),
+  letraB: require("../assets/videos/letraB.mp4"),
+  letraC: require("../assets/videos/letraC.mp4"),
+  letraD: require("../assets/videos/letraD.mp4"),
 };
 
 // Dados da fase 1 - Alfabeto Manual (SEM INTRODUÇÃO)
@@ -140,6 +141,11 @@ const fase1Data = {
 };
 
 export default function Fase1Alfabeto({ route, navigation }) {
+  const [fontsLoaded] = useFonts({
+    Strawford: require("../assets/font/Strawford-Regular.otf"),
+    Brockmann: require("../assets/font/Brockmann-Medium.otf"),
+  });
+
   const [etapaAtual, setEtapaAtual] = useState(0);
   const [respostas, setRespostas] = useState({});
   const [acertos, setAcertos] = useState(0);
@@ -545,6 +551,10 @@ export default function Fase1Alfabeto({ route, navigation }) {
     );
   };
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#00008B" />
@@ -653,13 +663,14 @@ const styles = StyleSheet.create({
   },
   etapaTitulo: {
     fontSize: 28,
-    fontWeight: "700",
+    fontFamily: "Brockmann",
     color: "#333",
     marginBottom: 10,
     textAlign: "center",
   },
   etapaDescricao: {
     fontSize: 18,
+    fontFamily: "Brockmann",
     color: "#666",
     textAlign: "center",
     marginBottom: 30,
@@ -687,6 +698,7 @@ const styles = StyleSheet.create({
   },
   videoInstrucao: {
     fontSize: 16,
+    fontFamily: "Brockmann",
     color: "#666",
     fontStyle: "italic",
     textAlign: "center",
@@ -698,7 +710,7 @@ const styles = StyleSheet.create({
   },
   opcoesTitulo: {
     fontSize: 20,
-    fontWeight: "600",
+    fontFamily: "Brockmann",
     color: "#333",
     marginBottom: 25,
     textAlign: "center",
@@ -723,7 +735,7 @@ const styles = StyleSheet.create({
   },
   opcaoTexto: {
     fontSize: 24,
-    fontWeight: "700",
+    fontFamily: "Brockmann",
     color: "#333",
     flex: 1,
   },
@@ -761,6 +773,7 @@ const styles = StyleSheet.create({
   },
   instrucaoDesafio: {
     fontSize: 16,
+    fontFamily: "Brockmann",
     color: "#666",
     fontStyle: "italic",
     textAlign: "center",
@@ -769,6 +782,7 @@ const styles = StyleSheet.create({
   },
   processandoTexto: {
     fontSize: 14,
+    fontFamily: "Brockmann",
     color: "#666",
     fontStyle: "italic",
     textAlign: "center",
@@ -802,7 +816,7 @@ const styles = StyleSheet.create({
   },
   botaoNavegacaoTexto: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "Brockmann",
     color: "#4A90E2",
   },
   botaoDisabled: {
@@ -825,7 +839,7 @@ const styles = StyleSheet.create({
   },
   botaoNavegacaoPrimarioTexto: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "Brockmann",
     color: "#FFF",
   },
   progressoContainer: {
@@ -841,7 +855,7 @@ const styles = StyleSheet.create({
   },
   progressoTexto: {
     fontSize: 18,
-    fontWeight: "600",
+    fontFamily: "Brockmann",
     color: "#333",
     marginBottom: 10,
     textAlign: "center",
@@ -860,7 +874,7 @@ const styles = StyleSheet.create({
   },
   acertosTexto: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "Brockmann",
     color: "#4A90E2",
     textAlign: "center",
   },
@@ -884,13 +898,14 @@ const styles = StyleSheet.create({
   },
   modalTexto: {
     fontSize: 20,
-    fontWeight: "600",
+    fontFamily: "Brockmann",
     color: "#333",
     textAlign: "center",
     marginBottom: 10,
   },
   modalInstrucao: {
     fontSize: 14,
+    fontFamily: "Brockmann",
     color: "#666",
     textAlign: "center",
     fontStyle: "italic",

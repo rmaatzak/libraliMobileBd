@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useFonts } from "expo-font";
 import {
   View,
   Text,
@@ -19,9 +20,15 @@ import avatar3 from "../photos/foto2.png";
 import avatar4 from "../photos/foto3.png";
 import avatar5 from "../photos/foto4.png";
 import avatar6 from "../photos/foto5.png";
-import avatar7 from "../photos/foto6.png";
+import avatar7 from "../photos/foto6.png"; 
+
+
+
 
 const { width, height } = Dimensions.get("window");
+
+
+  
 
 const MenuLateral = ({ navigation }) => {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -43,6 +50,8 @@ const MenuLateral = ({ navigation }) => {
     avatar6: avatar6,
     avatar7: avatar7,
   };
+
+  
 
   // Carregar dados do usuário
   useEffect(() => {
@@ -77,6 +86,15 @@ const MenuLateral = ({ navigation }) => {
     }
   };
 
+  
+const [fontsLoaded] = useFonts({
+    Strawford: require("../assets/font/Strawford-Regular.otf"),
+    Brockmann: require("../assets/font/Brockmann-Medium.otf"),
+  });
+
+  
+
+  
   const toggleMenu = () => {
     const novoEstado = !menuAberto;
     setMenuAberto(novoEstado);
@@ -105,6 +123,10 @@ const MenuLateral = ({ navigation }) => {
     ]).start();
   };
 
+    if (!fontsLoaded) {
+    return null;
+  }
+  
   const linha1Transform = {
     transform: [
       {
@@ -154,13 +176,13 @@ const MenuLateral = ({ navigation }) => {
     }),
   };
 
+  
+
+
   const menuItems = [
     { id: 1, titulo: "Início", tela: "Interface" },
     { id: 2, titulo: "Perfil", tela: "Perfil" },
     { id: 3, titulo: "Jogos", tela: "Jogos" },
-    { id: 4, titulo: "Cursos", tela: "Cursos" },
-    { id: 5, titulo: "Ajuda", tela: "Ajuda" },
-    { id: 6, titulo: "Sair", tela: "Sair" },
   ];
 
   const navegarPara = (tela) => {
@@ -185,6 +207,7 @@ const MenuLateral = ({ navigation }) => {
       alert("Funcionalidade de sair será implementada");
     }, 300);
   };
+
 
   return (
     <View style={styles.container}>
@@ -450,9 +473,9 @@ const styles = StyleSheet.create({
   },
   labelMenu: {
     fontSize: 12,
-    fontWeight: "700",
     color: "rgba(255, 255, 255, 0.5)",
     letterSpacing: 1.2,
+    fontFamily: "Brockmann",
   },
   listaItens: {
     flex: 1,
@@ -469,7 +492,7 @@ const styles = StyleSheet.create({
   textoItem: {
     fontSize: 16,
     color: "#fff",
-    fontWeight: "500",
+    fontFamily: "Strawford",
   },
   textoSair: {
     color: "#FF6B6B",

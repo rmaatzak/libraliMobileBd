@@ -8,7 +8,6 @@ import Login from "./pages/login";
 import InicialPage from "./pages/inicialPage";
 import EscolhaPage from "./pages/escolhaPage";
 import KidsTela from "./pages/kidsTela";
-import AdultoTela from "./pages/adultoTela";
 import Interface from "./pages/interface";
 import Jogos from "./pages/jogos";
 import Perfil from "./pages/perfil";
@@ -25,7 +24,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Jogos"
+        initialRouteName="Interface"
         screenOptions={{
           headerShown: false,
           gestureEnabled: false, // Desativa gestos de voltar globalmente
@@ -37,7 +36,6 @@ export default function App() {
         <Stack.Screen name="Login" component={Login} />
 
         {/* Telas principais após login */}
-        <Stack.Screen name="AdultoTela" component={AdultoTela} />
         <Stack.Screen name="KidsTela" component={KidsTela} />
         <Stack.Screen name="Interface" component={Interface} />
 

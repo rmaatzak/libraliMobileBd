@@ -1,5 +1,6 @@
 // interface.js
 import React, { useRef, useState, useEffect } from "react";
+import { useFonts } from "expo-font";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   View,
@@ -30,6 +31,12 @@ import avatar6 from "../photos/foto5.png";
 import avatar7 from "../photos/foto6.png";
 
 export default function Interface({ route, navigation }) {
+  // TODOS OS HOOKS NO INÍCIO DO COMPONENTE
+  const [fontsLoaded] = useFonts({
+    Strawford: require("../assets/font/Strawford-Regular.otf"),
+    Brockmann: require("../assets/font/Brockmann-Medium.otf"),
+  });
+
   const { nome } = route?.params || { nome: "Usuário" };
   const scrollY = useRef(new Animated.Value(0)).current;
   const [headerHeight] = useState(280);
@@ -80,6 +87,11 @@ export default function Interface({ route, navigation }) {
       console.error("Erro ao carregar dados do usuário:", error);
     }
   };
+
+  // VERIFICAÇÃO DAS FONTES APÓS TODOS OS HOOKS
+  if (!fontsLoaded) {
+    return null;
+  }
 
   // Configuração da animação do header - agora fica fixo após certo ponto
   const headerTranslateY = scrollY.interpolate({
@@ -135,14 +147,7 @@ export default function Interface({ route, navigation }) {
 
   // Dados dos 3 cards - COM LINKAMENTO DE IMAGENS VIA require()
   const cardsData = [
-    {
-      id: 1,
-      titulo: "Cursos",
-      descricao: "Aprenda Libras passo a passo",
-      imagem: require("../assets/cursos.png"),
-      cor: "#F89F30",
-      tela: "Cursos",
-    },
+
     {
       id: 2,
       titulo: "Jogos",
@@ -150,14 +155,6 @@ export default function Interface({ route, navigation }) {
       imagem: require("../assets/jogos.png"),
       cor: "#4169E1",
       tela: "Jogos",
-    },
-    {
-      id: 3,
-      titulo: "Outros",
-      descricao: "Mais recursos e ferramentas",
-      imagem: require("../assets/outros.png"),
-      cor: "#F89F30",
-      tela: "Outros",
     },
   ];
 
@@ -321,15 +318,6 @@ export default function Interface({ route, navigation }) {
                 </View>
               ))}
             </View>
-
-            <TouchableOpacity
-              style={styles.learnMoreButton}
-              onPress={() => navigation.navigate("Sobre")}
-            >
-              <Text style={styles.learnMoreText}>
-                Conheça nossa história completa!
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -380,15 +368,17 @@ const styles = StyleSheet.create({
   },
   hi: {
     fontSize: 26,
-    fontWeight: "700",
     color: "#fff",
     textAlign: "center",
     marginBottom: 6,
+    fontFamily: "Brockmann",
   },
   question: {
     fontSize: 15,
-    color: "#dcdcdc",
+    color: "#ffffffff",
     textAlign: "center",
+    fontFamily: "Strawford",
+
   },
   menuContainer: {
     position: "absolute",
@@ -413,14 +403,16 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: "700",
-    color: "#333",
+        color: "#333",
     marginBottom: 8,
+    fontFamily: "Brockmann",
+
   },
   sectionSubtitle: {
     fontSize: 14,
     color: "#666",
     lineHeight: 20,
+    fontFamily: "Strawford",
   },
   cardsRow: {
     flexDirection: "row",
@@ -428,10 +420,11 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   card: {
-    width: cardWidth,
+    width: 300,
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 15,
+    marginLeft:20,
     alignItems: "center",
     borderTopWidth: 4,
     borderTopColor: "#4169E1",
@@ -458,16 +451,17 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: "700",
     color: "#333",
     marginBottom: 6,
     textAlign: "center",
+    fontFamily: "Brockmann",
   },
   cardDescription: {
     fontSize: 12,
     color: "#666",
     textAlign: "center",
     lineHeight: 16,
+    fontFamily: "Strawford",
   },
   aboutContainer: {
     backgroundColor: "#F8F9FA",
@@ -508,6 +502,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 20,
     textAlign: "center",
+    fontFamily: "Strawford",
   },
   valuesContainer: {
     flexDirection: "row",
@@ -533,26 +528,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   valueTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
     color: "#333",
     marginTop: 8,
+    fontFamily: "Brockmann",
   },
-  learnMoreButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderWidth: 1.5,
-    borderColor: "#00008B",
-    borderRadius: 12,
-  },
-  learnMoreText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#00008B",
-    marginRight: 8,
-  },
+
   footerSpace: {
     height: 50,
   },

@@ -543,9 +543,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: "700",
     color: "#fff",
     textAlign: "center",
+    fontFamily: "Brockmann",
   },
   headerSubtitle: {
     fontSize: 14,
@@ -573,16 +573,17 @@ const styles = StyleSheet.create({
   },
   tituloPrincipal: {
     fontSize: 17,
-    fontWeight: "600",
+    fontFamily:"Strawford",
     color: "#333",
     marginBottom: 10,
-    textAlign: "left",
+    textAlign: "center",
   },
   subtitulo: {
     fontSize: 16,
     color: "#666",
     textAlign: "center",
     lineHeight: 22,
+    
   },
   // ESTILOS DO MAPA DO TESOURO
   mapaContainer: {

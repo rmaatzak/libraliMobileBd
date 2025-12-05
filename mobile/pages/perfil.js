@@ -1,5 +1,6 @@
 // pages/perfil.js
 import React, { useRef, useState, useEffect } from "react";
+import { useFonts } from "expo-font";
 import {
   View,
   Text,
@@ -37,6 +38,12 @@ import Avatar6 from "../photos/foto5.png";
 import Avatar7 from "../photos/foto6.png";
 
 export default function Perfil({ route, navigation }) {
+  
+   const [fontsLoaded] = useFonts({
+    Strawford: require("../assets/font/Strawford-Regular.otf"),
+    Brockmann: require("../assets/font/Brockmann-Medium.otf"),
+  });
+  
   const scrollY = useRef(new Animated.Value(0)).current;
   const [headerHeight] = useState(100);
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
@@ -169,6 +176,11 @@ export default function Perfil({ route, navigation }) {
     outputRange: [1, 1],
     extrapolate: "clamp",
   });
+
+
+    if (!fontsLoaded) {
+    return null;
+  }
 
   // Modal de seleção de avatar
   const AvatarSelectorModal = () => (
@@ -564,9 +576,9 @@ const styles = StyleSheet.create({
   },
   nomeUsuario: {
     fontSize: 24,
-    fontWeight: "700",
     color: "#333",
     marginBottom: 5,
+    fontFamily: "Brockmann",
   },
   tipoUsuario: {
     fontSize: 14,
@@ -576,7 +588,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     marginBottom: 20,
-  },
+    fontFamily: "Strawford",
+    },
   perguntaContainer: {
     backgroundColor: "#F0F7FF",
     borderRadius: 16,
@@ -604,8 +617,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   perguntaTexto: {
+    fontFamily: "Brockmann",
     fontSize: 15,
-    fontWeight: "600",
     color: "#1E3A8A",
     textAlign: "center",
     marginBottom: 15,
@@ -627,6 +640,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     letterSpacing: 0.5,
+    fontFamily: "Brockmann",
+
   },
   card: {
     backgroundColor: "#FFF",
@@ -650,7 +665,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontFamily: "Brockmann",
     color: "#333",
   },
   infoRow: {
@@ -659,13 +674,14 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   infoLabel: {
+     fontFamily: "Brockmann",
     fontSize: 16,
-    fontWeight: "500",
     color: "#666",
     width: 80,
     marginRight: 10,
   },
   infoValue: {
+   fontFamily: "Strawford",
     fontSize: 16,
     color: "#333",
     flex: 1,
