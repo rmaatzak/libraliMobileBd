@@ -204,5 +204,3 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   console.log(`🔐 Sistema de autenticação JWT ativo!`);
 });
-
-//server.js

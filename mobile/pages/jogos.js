@@ -1,5 +1,5 @@
 // pages/jogos.js
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,19 +11,90 @@ import {
   ScrollView,
   TouchableOpacity,
   Animated,
+  Alert,
 } from "react-native";
 import MenuLateral from "../auxilio/menuLateral";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { Svg, Path } from "react-native-svg";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Importar a logo
 import Logo from "../assets/logoBR.png";
+// Importar imagem da estrela
+import EstrelaImg from "../assets/estrela.png";
+// Importar imagem do cadeado
+import CadeadoImg from "../assets/cadeado.png";
 
 export default function Jogos({ route, navigation }) {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [headerHeight] = useState(100);
+  const [fasesDesbloqueadas, setFasesDesbloqueadas] = useState([1]);
+  const [carregando, setCarregando] = useState(true);
 
-  // Header fixo no topo
+  // Carregar progresso salvo
+  useEffect(() => {
+    carregarProgresso();
+  }, []);
+
+  // Atualizar quando voltar de uma fase
+  useEffect(() => {
+    if (route.params?.atualizarProgresso) {
+      carregarProgresso();
+    }
+  }, [route.params?.atualizarProgresso]);
+
+  const carregarProgresso = async () => {
+    try {
+      const progressoSalvo = await AsyncStorage.getItem("fasesDesbloqueadas");
+      if (progressoSalvo) {
+        const fasesSalvas = JSON.parse(progressoSalvo);
+        // Garantir que pelo menos a fase 1 esteja desbloqueada
+        if (!fasesSalvas.includes(1)) {
+          fasesSalvas.push(1);
+          await salvarProgresso(fasesSalvas);
+        }
+        setFasesDesbloqueadas(fasesSalvas);
+      } else {
+        // Primeira vez: apenas fase 1 desbloqueada
+        const fasesIniciais = [1];
+        await AsyncStorage.setItem(
+          "fasesDesbloqueadas",
+          JSON.stringify(fasesIniciais)
+        );
+        setFasesDesbloqueadas(fasesIniciais);
+      }
+    } catch (error) {
+      console.log("Erro ao carregar progresso:", error);
+      // Em caso de erro, garante pelo menos a fase 1
+      setFasesDesbloqueadas([1]);
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  const salvarProgresso = async (novasFases) => {
+    try {
+      await AsyncStorage.setItem(
+        "fasesDesbloqueadas",
+        JSON.stringify(novasFases)
+      );
+      setFasesDesbloqueadas(novasFases);
+    } catch (error) {
+      console.log("Erro ao salvar progresso:", error);
+    }
+  };
+
+  // Função para desbloquear uma fase específica
+  const desbloquearFase = async (faseId) => {
+    if (!fasesDesbloqueadas.includes(faseId)) {
+      const novasFases = [...fasesDesbloqueadas, faseId];
+      await salvarProgresso(novasFases);
+      return true;
+    }
+    return false;
+  };
+
+  // Header fixo no topo - SEM MOVIMENTAÇÃO
   const headerTranslateY = scrollY.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 0],
@@ -37,32 +108,14 @@ export default function Jogos({ route, navigation }) {
     extrapolate: "clamp",
   });
 
-  // Logo sempre visível
+  // Logo sempre visível - SEM OPACIDADE
   const logoOpacity = scrollY.interpolate({
     inputRange: [0, 1],
     outputRange: [1, 1],
     extrapolate: "clamp",
   });
 
-  // Logo se move para cima para se centralizar no header menor
-  const logoTranslateY = scrollY.interpolate({
-    inputRange: [0, 180],
-    outputRange: [0, -50],
-    extrapolate: "clamp",
-  });
-
-  // Menu lateral também se move
-  const menuTranslateY = scrollY.interpolate({
-    inputRange: [0, 180],
-    outputRange: [0, -50],
-    extrapolate: "clamp",
-  });
-
-  const navegarPara = (tela) => {
-    navigation.navigate(tela);
-  };
-
-  // Dados das fases - Agora a cada 5ª fase é uma estrela
+  // Dados das fases - ATUALIZADO: Apenas 6 fases, estrela na fase 6
   const fasesData = [
     {
       id: 1,
@@ -71,7 +124,6 @@ export default function Jogos({ route, navigation }) {
       descricao: "Aprenda as letras em LIBRAS",
       bloqueada: false,
       tipo: "normal",
-      icone: "alpha-a-box",
       posicao: { x: "50%", y: 50 },
     },
     {
@@ -79,9 +131,8 @@ export default function Jogos({ route, navigation }) {
       numero: 2,
       titulo: "Números",
       descricao: "Conte de 1 a 10",
-      bloqueada: false,
+      bloqueada: true,
       tipo: "normal",
-      icone: "numeric-1-box",
       posicao: { x: "20%", y: 180 },
     },
     {
@@ -89,9 +140,8 @@ export default function Jogos({ route, navigation }) {
       numero: 3,
       titulo: "Cumprimentos",
       descricao: "Olá, Bom dia, Tudo bem?",
-      bloqueada: false,
+      bloqueada: true,
       tipo: "normal",
-      icone: "hand-wave",
       posicao: { x: "80%", y: 310 },
     },
     {
@@ -101,108 +151,88 @@ export default function Jogos({ route, navigation }) {
       descricao: "Vermelho, Azul, Amarelo",
       bloqueada: true,
       tipo: "normal",
-      icone: "palette",
       posicao: { x: "30%", y: 440 },
     },
     {
       id: 5,
+      numero: 5,
+      titulo: "Alimentos",
+      descricao: "Fome, Sede, Copo de Água",
+      bloqueada: true,
+      tipo: "normal",
+      posicao: { x: "60%", y: 570 },
+    },
+    {
+      id: 6,
       numero: "★",
       titulo: "Desafio 1",
       descricao: "Revisão do aprendizado",
       bloqueada: true,
       tipo: "estrela",
-      icone: "star",
-      posicao: { x: "60%", y: 570 },
-    },
-    {
-      id: 6,
-      numero: 6,
-      titulo: "Família",
-      descricao: "Mãe, Pai, Irmão...",
-      bloqueada: true,
-      tipo: "normal",
-      icone: "account-group",
-      posicao: { x: "70%", y: 700 },
-    },
-    {
-      id: 7,
-      numero: 7,
-      titulo: "Animais",
-      descricao: "Cachorro, Gato, Pássaro",
-      bloqueada: true,
-      tipo: "normal",
-      icone: "paw",
-      posicao: { x: "30%", y: 830 },
-    },
-    {
-      id: 8,
-      numero: 8,
-      titulo: "Alimentos",
-      descricao: "Comidas e bebidas",
-      bloqueada: true,
-      tipo: "normal",
-      icone: "food-apple",
-      posicao: { x: "60%", y: 960 },
-    },
-    {
-      id: 9,
-      numero: 9,
-      titulo: "Verbose Básicos",
-      descricao: "Comer, Beber, Dormir",
-      bloqueada: true,
-      tipo: "normal",
-      icone: "run",
-      posicao: { x: "40%", y: 1090 },
-    },
-    {
-      id: 10,
-      numero: "★",
-      titulo: "Desafio 2",
-      descricao: "Teste intermediário",
-      bloqueada: true,
-      tipo: "estrela",
-      icone: "star",
-      posicao: { x: "70%", y: 1220 },
-    },
-    {
-      id: 11,
-      numero: 11,
-      titulo: "Emoções",
-      descricao: "Feliz, Triste, Bravo",
-      bloqueada: true,
-      tipo: "normal",
-      icone: "emoticon-happy",
-      posicao: { x: "50%", y: 1350 },
-    },
-    {
-      id: 12,
-      numero: 12,
-      titulo: "Profissões",
-      descricao: "Médico, Professor, Engenheiro",
-      bloqueada: true,
-      tipo: "normal",
-      icone: "briefcase",
-      posicao: { x: "20%", y: 1480 },
+      imagemEstrela: true,
+      posicao: { x: "40%", y: 700 },
     },
   ];
 
+  // Atualizar bloqueio baseado no progresso salvo
+  const fasesComProgresso = fasesData.map((fase) => ({
+    ...fase,
+    bloqueada: !fasesDesbloqueadas.includes(fase.id),
+  }));
+
+  // FUNÇÃO ATUALIZADA - INCLUINDO FASE 5
   const iniciarFase = (fase) => {
     if (!fase.bloqueada) {
-      alert(`Iniciando ${fase.titulo}`);
-      // navigation.navigate('JogoFase1', { fase: fase.numero });
+      if (fase.id === 1) {
+        navigation.navigate("Fase1Alfabeto", {
+          atualizarProgresso: true,
+        });
+      } else if (fase.id === 2) {
+        navigation.navigate("Fase2Numeros", {
+          atualizarProgresso: true,
+        });
+      } else if (fase.id === 3) {
+        navigation.navigate("Fase3Cumprimentos", {
+          atualizarProgresso: true,
+        });
+      } else if (fase.id === 4) {
+        // FASE 4 - CORES BÁSICAS
+        navigation.navigate("Fase4Cores", {
+          atualizarProgresso: true,
+        });
+      } else if (fase.id === 5) {
+        // NOVA FASE 5 - ALIMENTOS
+        navigation.navigate("Fase5Alimentos", {
+          atualizarProgresso: true,
+        });
+      } else if (fase.id === 6) {
+  // FASE 6 - DESAFIO 1
+  navigation.navigate("Fase6Desafio1", {
+    atualizarProgresso: true,
+  });
+}
+       else {
+        Alert.alert(
+          "Em desenvolvimento",
+          `A fase ${fase.titulo} estará disponível em breve!`,
+          [{ text: "OK" }]
+        );
+      }
     } else {
-      alert(
-        `${fase.titulo} está bloqueada. Complete as fases anteriores primeiro!`
+      Alert.alert(
+        "Fase Bloqueada",
+        `${fase.titulo} está bloqueada. Complete as fases anteriores primeiro!`,
+        [{ text: "OK" }]
       );
     }
   };
 
-  // Função para gerar o caminho do mapa do tesouro
+  // Função para gerar o caminho do mapa do tesouro COM CURVAS MUITO SINUOSAS
   const gerarCaminhoDoTesouro = () => {
-    const pontos = fasesData.map((fase) => fase.posicao);
+    const pontos = fasesComProgresso.map((fase) => fase.posicao);
 
     // Converter porcentagens em pixels aproximados
-    const converterParaPixels = (ponto, index) => {
+    const converterParaPixels = (ponto) => {
       const x = (parseFloat(ponto.x) / 100) * (width - 90);
       const y = ponto.y;
       return { x, y };
@@ -210,22 +240,53 @@ export default function Jogos({ route, navigation }) {
 
     const pontosPixels = pontos.map(converterParaPixels);
 
-    // Criar um caminho SVG com curvas suaves
+    // Criar um caminho SVG com curvas bezier MUITO MAIS SINUOSAS
     let caminho = `M ${pontosPixels[0].x + 45} ${pontosPixels[0].y + 45}`;
 
     for (let i = 1; i < pontosPixels.length; i++) {
       const prev = pontosPixels[i - 1];
       const curr = pontosPixels[i];
 
-      // Calcular pontos de controle para curvas bezier
-      const cp1x = prev.x + 45 + (curr.x - prev.x) * 0.5;
-      const cp1y = prev.y + 45;
-      const cp2x = curr.x + 45 - (curr.x - prev.x) * 0.5;
-      const cp2y = curr.y + 45;
+      // Calcular direção e distância
+      const distX = curr.x - prev.x;
+      const distY = curr.y - prev.y;
+      const distTotal = Math.sqrt(distX * distX + distY * distY);
 
-      caminho += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x + 45} ${
-        curr.y + 45
-      }`;
+      // Criar ondulações MUITO MAIS PRONUNCIADAS
+      // Quanto maior a distância, mais sinuoso o caminho
+      const amplitudeBase = Math.min(distTotal * 0.4, 100); // Aumentado de 0.3 para 0.4
+      const amplitude = amplitudeBase + Math.random() * 30; // Adiciona variação aleatória
+
+      // Alternar a direção da curva de forma mais dramática
+      const direcaoCurva = i % 2 === 0 ? 1 : -1;
+
+      // Adicionar variação extra baseada no índice para criar padrões únicos
+      const variacaoExtra = Math.sin(i * 0.5) * 20;
+
+      // Pontos de controle com MUITO MAIS curvatura
+      // Primeiro ponto de controle - sai do ponto anterior com curva
+      const cp1x = prev.x + 45 + distX * 0.25 + amplitude * 0.5 * direcaoCurva;
+      const cp1y =
+        prev.y + 45 + distY * 0.25 + amplitude * direcaoCurva + variacaoExtra;
+
+      // Segundo ponto de controle - chega no ponto atual com curva
+      const cp2x = curr.x + 45 - distX * 0.25 - amplitude * 0.5 * direcaoCurva;
+      const cp2y =
+        curr.y + 45 - distY * 0.25 - amplitude * direcaoCurva - variacaoExtra;
+
+      // Para criar caminhos ainda mais orgânicos, podemos usar curvas quadráticas
+      // alternadas com curvas cúbicas
+      if (i % 3 === 0) {
+        // A cada 3 segmentos, usa uma curva mais suave
+        const cpx = (prev.x + curr.x) / 2 + 45 + amplitude * direcaoCurva;
+        const cpy = (prev.y + curr.y) / 2 + 45 + amplitude * 1.5 * direcaoCurva;
+        caminho += ` Q ${cpx} ${cpy}, ${curr.x + 45} ${curr.y + 45}`;
+      } else {
+        // Curva cúbica padrão (mais sinuosa)
+        caminho += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x + 45} ${
+          curr.y + 45
+        }`;
+      }
     }
 
     return caminho;
@@ -235,7 +296,7 @@ export default function Jogos({ route, navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#00008B" />
 
-      {/* HEADER FIXO E PEQUENO - ESTILO IGUAL AO INTERFACE.JS */}
+      {/* HEADER FIXO E PEQUENO - SEM ANIMAÇÃO DE MOVIMENTO */}
       <Animated.View
         style={[
           styles.header,
@@ -244,37 +305,22 @@ export default function Jogos({ route, navigation }) {
           },
         ]}
       >
-        {/* Logo fixa no header pequeno */}
-        <Animated.View
-          style={[
-            styles.logoContainer,
-            {
-              opacity: logoOpacity,
-              transform: [{ translateY: logoTranslateY }],
-            },
-          ]}
-        >
+        {/* Logo fixa no header - SEM MOVIMENTAÇÃO */}
+        <View style={styles.logoContainer}>
           <Image source={Logo} style={styles.logo} resizeMode="contain" />
-        </Animated.View>
+        </View>
 
         {/* Título fixo no header */}
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Jogos</Text>
-          <Text style={styles.headerSubtitle}>Aprenda jogando!</Text>
+          <Text style={styles.headerTitle}></Text>
+          <Text style={styles.headerSubtitle}></Text>
         </View>
       </Animated.View>
 
-      {/* MENU LATERAL - AGORA COM ANIMAÇÃO IGUAL AO INTERFACE.JS */}
-      <Animated.View
-        style={[
-          styles.menuContainer,
-          {
-            transform: [{ translateY: menuTranslateY }],
-          },
-        ]}
-      >
+      {/* MENU LATERAL - FIXO SEM MOVIMENTAÇÃO - PASSANDO A NAVIGATION */}
+      <View style={styles.menuContainer}>
         <MenuLateral navigation={navigation} />
-      </Animated.View>
+      </View>
 
       {/* CONTEÚDO PRINCIPAL COM SCROLL */}
       <Animated.ScrollView
@@ -293,21 +339,32 @@ export default function Jogos({ route, navigation }) {
         {/* TÍTULO DA PÁGINA */}
         <View style={styles.tituloContainer}>
           <Text style={styles.tituloPrincipal}>
-            Descubra o tesouro do conhecimento!
-          </Text>
-          <Text style={styles.subtitulo}>
-            Siga o mapa e complete as fases para desbloquear novas aventuras!
+            Vamos testar seu conhecimento?
           </Text>
         </View>
 
         {/* MAPA DO TESOURO */}
         <View style={styles.mapaContainer}>
-          {/* Linha do caminho (mapa do tesouro) */}
+          {/* Linha do caminho (mapa do tesouro) COM CURVAS MUITO SINUOSAS */}
           <View style={styles.caminhoSvgContainer}>
             <Svg
-              height={fasesData[fasesData.length - 1].posicao.y + 100}
+              height={
+                fasesComProgresso[fasesComProgresso.length - 1].posicao.y + 100
+              }
               width="100%"
             >
+              {/* Sombra da linha principal */}
+              <Path
+                d={gerarCaminhoDoTesouro()}
+                fill="none"
+                stroke="rgba(0, 0, 0, 0.1)"
+                strokeWidth={10}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                transform="translate(2, 3)"
+              />
+
+              {/* Linha principal do caminho */}
               <Path
                 d={gerarCaminhoDoTesouro()}
                 fill="none"
@@ -315,7 +372,7 @@ export default function Jogos({ route, navigation }) {
                 strokeWidth={8}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeDasharray={fasesData[2].bloqueada ? "0" : "15,10"}
+                strokeDasharray={fasesComProgresso[2].bloqueada ? "0" : "20,15"}
               />
 
               {/* Efeito de brilho na linha */}
@@ -327,12 +384,24 @@ export default function Jogos({ route, navigation }) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 opacity={0.6}
+                strokeDasharray={fasesComProgresso[2].bloqueada ? "0" : "20,15"}
+              />
+
+              {/* Linha interna mais clara (efeito 3D) */}
+              <Path
+                d={gerarCaminhoDoTesouro()}
+                fill="none"
+                stroke="#A8D5FF"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.8}
               />
             </Svg>
           </View>
 
           {/* Pontos de verificação (fases) */}
-          {fasesData.map((fase, index) => (
+          {fasesComProgresso.map((fase, index) => (
             <View
               key={fase.id}
               style={[
@@ -340,15 +409,10 @@ export default function Jogos({ route, navigation }) {
                 {
                   left: fase.posicao.x,
                   top: fase.posicao.y,
-                  marginLeft: -45, // Metade do tamanho da bolinha
+                  marginLeft: -45,
                 },
               ]}
             >
-              {/* Linha pontilhada para fases bloqueadas */}
-              {fase.bloqueada && index > 0 && (
-                <View style={styles.linhaPontilhada} />
-              )}
-
               {/* Bolinha da fase */}
               <TouchableOpacity
                 style={[
@@ -369,10 +433,8 @@ export default function Jogos({ route, navigation }) {
                     fase.tipo === "estrela" && styles.bolinhaFundoEstrela,
                   ]}
                 >
-                  {/* Número/estrela dentro da bolinha */}
-                  {fase.tipo === "estrela" ? (
-                    <Text style={styles.estrelaDentro}>★</Text>
-                  ) : (
+                  {/* Número dentro da bolinha */}
+                  {fase.tipo === "normal" && (
                     <Text
                       style={[
                         styles.numeroDentro,
@@ -383,23 +445,21 @@ export default function Jogos({ route, navigation }) {
                     </Text>
                   )}
 
-                  {/* Ícone pequeno no centro */}
-                  {!fase.bloqueada && fase.tipo === "normal" && (
-                    <Icon
-                      name={fase.icone}
-                      size={20}
-                      color="#FFF"
-                      style={styles.iconeDentro}
+                  {/* Imagem da estrela */}
+                  {fase.tipo === "estrela" && fase.imagemEstrela && (
+                    <Image
+                      source={EstrelaImg}
+                      style={styles.estrelaImagem}
+                      resizeMode="contain"
                     />
                   )}
 
-                  {/* Cadeado se estiver bloqueada */}
-                  {fase.bloqueada && (
-                    <Icon
-                      name="lock"
-                      size={20}
-                      color="#999"
-                      style={styles.iconeBloqueado}
+                  {/* Imagem do cadeado para fases bloqueadas */}
+                  {fase.bloqueada && fase.tipo === "normal" && (
+                    <Image
+                      source={CadeadoImg}
+                      style={styles.cadeadoImagem}
+                      resizeMode="contain"
                     />
                   )}
                 </View>
@@ -415,7 +475,7 @@ export default function Jogos({ route, navigation }) {
                 )}
               </TouchableOpacity>
 
-              {/* Tooltip com título (aparece ao pressionar) */}
+              {/* Tooltip com título */}
               <View style={styles.tooltipContainer}>
                 <Text
                   style={[
@@ -431,8 +491,7 @@ export default function Jogos({ route, navigation }) {
 
           {/* Ícone de tesouro no final */}
           <View style={styles.tesouroFinal}>
-            <Icon name="treasure-chest" size={60} color="#FFD700" />
-            <Text style={styles.tesouroTexto}>Tesouro Final</Text>
+            <Icon name="" size={60} color="#FFD700" />
           </View>
         </View>
 
@@ -471,6 +530,7 @@ const styles = StyleSheet.create({
     top: Platform.OS === "ios" ? 50 : 60,
     left: 20,
     zIndex: 1001,
+    marginTop: -20,
   },
   logo: {
     width: 35,
@@ -498,7 +558,7 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 1002,
     paddingTop: 35,
-    marginTop: -35,
+    marginTop: -80,
   },
   scrollContainer: {
     flex: 1,
@@ -512,11 +572,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   tituloPrincipal: {
-    fontSize: 28,
-    fontWeight: "700",
+    fontSize: 17,
+    fontWeight: "600",
     color: "#333",
     marginBottom: 10,
-    textAlign: "center",
+    textAlign: "left",
   },
   subtitulo: {
     fontSize: 16,
@@ -526,7 +586,7 @@ const styles = StyleSheet.create({
   },
   // ESTILOS DO MAPA DO TESOURO
   mapaContainer: {
-    minHeight: 1600,
+    minHeight: 850, // Reduzido para 6 fases
     position: "relative",
     marginHorizontal: 10,
   },
@@ -545,19 +605,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     zIndex: 2,
-  },
-  linhaPontilhada: {
-    position: "absolute",
-    top: -60,
-    width: 4,
-    height: 60,
-    backgroundColor: "transparent",
-    borderStyle: "dashed",
-    borderWidth: 2,
-    borderColor: "#E5E7EB",
-    borderTopWidth: 0,
-    borderLeftWidth: 0,
-    borderRightWidth: 0,
   },
   bolinhaFase: {
     width: 90,
@@ -613,21 +660,19 @@ const styles = StyleSheet.create({
   numeroBloqueado: {
     color: "#94A3B8",
   },
-  estrelaDentro: {
-    fontSize: 40,
-    color: "#FFF",
-    textShadowColor: "rgba(0,0,0,0.3)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+  // Estilo para imagem da estrela
+  estrelaImagem: {
+    width: 45,
+    height: 45,
   },
-  iconeDentro: {
+  // Estilo para imagem do cadeado
+  cadeadoImagem: {
+    width: 15,
+    height: 25,
     position: "absolute",
     bottom: 10,
-    opacity: 0.9,
-  },
-  iconeBloqueado: {
-    position: "absolute",
-    bottom: 10,
+    alignItems: "center",
+    marginBottom: -10,
   },
   brilhoEfeito: {
     position: "absolute",
@@ -675,7 +720,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: "50%",
     marginLeft: -30,
-    top: 1600,
+    top: 850, // Ajustado para 6 fases
     alignItems: "center",
     zIndex: 3,
   },

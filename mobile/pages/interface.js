@@ -1,5 +1,5 @@
 // interface.js
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   View,
@@ -15,17 +15,71 @@ import {
 } from "react-native";
 import MenuLateral from "../auxilio/menuLateral";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // IMPORTANTE: Altere este caminho para o local correto da sua imagem
-import Logo from "../assets/logoBR.png"; // <-- Atualize este caminho!
+import Logo from "../assets/logoBR.png";
 
-// NÃO PRECISA IMPORTAR CADA IMAGEM INDIVIDUALMENTE - VAMOS USAR require()
+// Importar avatares
+import adultoImg from "../photos/adulto.png";
+import avatar2 from "../photos/foto1.png";
+import avatar3 from "../photos/foto2.png";
+import avatar4 from "../photos/foto3.png";
+import avatar5 from "../photos/foto4.png";
+import avatar6 from "../photos/foto5.png";
+import avatar7 from "../photos/foto6.png";
 
 export default function Interface({ route, navigation }) {
   const { nome } = route?.params || { nome: "Usuário" };
   const scrollY = useRef(new Animated.Value(0)).current;
   const [headerHeight] = useState(280);
   const [minHeaderHeight] = useState(100);
+  const [nomeUsuario, setNomeUsuario] = useState(nome);
+  const [fotoPerfil, setFotoPerfil] = useState(adultoImg);
+
+  // Mapeamento de avatares
+  const avatares = {
+    avatar1: adultoImg,
+    avatar2: avatar2,
+    avatar3: avatar3,
+    avatar4: avatar4,
+    avatar5: avatar5,
+    avatar6: avatar6,
+    avatar7: avatar7,
+  };
+
+  // Carregar dados do usuário
+  useEffect(() => {
+    carregarDadosUsuario();
+
+    // Atualizar periodicamente para sincronizar
+    const interval = setInterval(carregarDadosUsuario, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const carregarDadosUsuario = async () => {
+    try {
+      const savedUser = await AsyncStorage.getItem("usuarioData");
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+
+        // Atualizar nome
+        if (parsedUser.nome && parsedUser.nome !== nomeUsuario) {
+          setNomeUsuario(parsedUser.nome);
+        }
+
+        // Atualizar foto do perfil
+        if (parsedUser.avatarId && avatares[parsedUser.avatarId]) {
+          setFotoPerfil(avatares[parsedUser.avatarId]);
+        } else if (parsedUser.fotoPerfil) {
+          setFotoPerfil(parsedUser.fotoPerfil);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados do usuário:", error);
+    }
+  };
 
   // Configuração da animação do header - agora fica fixo após certo ponto
   const headerTranslateY = scrollY.interpolate({
@@ -37,7 +91,7 @@ export default function Interface({ route, navigation }) {
   // Header diminui até um tamanho mínimo e para
   const headerHeightAnimated = scrollY.interpolate({
     inputRange: [0, 180, 500],
-    outputRange: [headerHeight, minHeaderHeight, minHeaderHeight], // Fica fixo em minHeaderHeight
+    outputRange: [headerHeight, minHeaderHeight, minHeaderHeight],
     extrapolate: "clamp",
   });
 
@@ -57,7 +111,7 @@ export default function Interface({ route, navigation }) {
   // Opacidade da logo (sempre visível)
   const logoOpacity = scrollY.interpolate({
     inputRange: [0, 180],
-    outputRange: [0.8, 1], // Fica mais visível quando header está menor
+    outputRange: [0.8, 1],
     extrapolate: "clamp",
   });
 
@@ -85,7 +139,7 @@ export default function Interface({ route, navigation }) {
       id: 1,
       titulo: "Cursos",
       descricao: "Aprenda Libras passo a passo",
-      imagem: require("../assets/cursos.png"), // LINKAMENTO DIRETO
+      imagem: require("../assets/cursos.png"),
       cor: "#F89F30",
       tela: "Cursos",
     },
@@ -93,7 +147,7 @@ export default function Interface({ route, navigation }) {
       id: 2,
       titulo: "Jogos",
       descricao: "Aprenda de forma divertida",
-      imagem: require("../assets/jogos.png"), // LINKAMENTO DIRETO
+      imagem: require("../assets/jogos.png"),
       cor: "#4169E1",
       tela: "Jogos",
     },
@@ -101,7 +155,7 @@ export default function Interface({ route, navigation }) {
       id: 3,
       titulo: "Outros",
       descricao: "Mais recursos e ferramentas",
-      imagem: require("../assets/outros.png"), // LINKAMENTO DIRETO
+      imagem: require("../assets/outros.png"),
       cor: "#F89F30",
       tela: "Outros",
     },
@@ -112,19 +166,23 @@ export default function Interface({ route, navigation }) {
     {
       id: 1,
       titulo: "Inclusão",
-      imagem: require("../assets/inclusao.png"), // LINKAMENTO DIRETO
+      imagem: require("../assets/inclusao.png"),
     },
     {
       id: 2,
       titulo: "Educação",
-      imagem: require("../assets/educacao.png"), // LINKAMENTO DIRETO
+      imagem: require("../assets/educacao.png"),
     },
     {
       id: 3,
       titulo: "Comunidade",
-      imagem: require("../assets/comunidade.png"), // LINKAMENTO DIRETO
+      imagem: require("../assets/comunidade.png"),
     },
   ];
+
+  const irParaPerfil = () => {
+    navigation.navigate("Perfil");
+  };
 
   return (
     <View style={styles.container}>
@@ -162,7 +220,7 @@ export default function Interface({ route, navigation }) {
             },
           ]}
         >
-          <Text style={styles.hi}>Olá, {nome}</Text>
+          <Text style={styles.hi}>Olá, {nomeUsuario}</Text>
           <Text style={styles.question}>O que você gostaria de hoje?</Text>
         </Animated.View>
       </Animated.View>
@@ -202,7 +260,7 @@ export default function Interface({ route, navigation }) {
             </Text>
           </View>
 
-          {/* 3 CARDS LADO A LADO - COM IMAGENS VIA require() */}
+          {/* 3 CARDS LADO A LADO */}
           <View style={styles.cardsRow}>
             {cardsData.map((card) => (
               <TouchableOpacity
@@ -217,7 +275,6 @@ export default function Interface({ route, navigation }) {
                     { backgroundColor: `${card.cor}15` },
                   ]}
                 >
-                  {/* IMAGEM VIA require() */}
                   <Image
                     source={card.imagem}
                     style={styles.cardImage}
@@ -236,9 +293,8 @@ export default function Interface({ route, navigation }) {
         {/* SEÇÃO: SOBRE NÓS */}
         <View style={styles.aboutContainer}>
           <View style={styles.aboutHeader}>
-            {/* IMAGEM VIA require() */}
             <Image
-              source={require("../assets/logoOriginal.png")} // LINKAMENTO DIRETO
+              source={require("../assets/logoOriginal.png")}
               style={styles.aboutIcon}
               resizeMode="contain"
             />
@@ -252,11 +308,10 @@ export default function Interface({ route, navigation }) {
               comunicação por sinais.
             </Text>
 
-            {/* VALORES COM IMAGENS VIA require() */}
+            {/* VALORES */}
             <View style={styles.valuesContainer}>
               {valoresData.map((valor) => (
                 <View key={valor.id} style={styles.valueItem}>
-                  {/* IMAGEM VIA require() */}
                   <Image
                     source={valor.imagem}
                     style={styles.valueImage}
@@ -278,7 +333,7 @@ export default function Interface({ route, navigation }) {
           </View>
         </View>
 
-        {/* ESPAÇO FINAL */}
+        {/* ESPAÇO FINAL (substituindo a seção do perfil) */}
         <View style={styles.footerSpace} />
       </Animated.ScrollView>
     </View>
@@ -286,7 +341,7 @@ export default function Interface({ route, navigation }) {
 }
 
 const { width } = Dimensions.get("window");
-const cardWidth = (width - 60) / 3; // 3 cards com espaçamento
+const cardWidth = (width - 60) / 3;
 
 const styles = StyleSheet.create({
   container: {
@@ -320,9 +375,8 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     alignItems: "center",
-    marginTop: 80,
-    marginBottom: 40,
     marginTop: 100,
+    marginBottom: 40,
   },
   hi: {
     fontSize: 26,
@@ -336,7 +390,6 @@ const styles = StyleSheet.create({
     color: "#dcdcdc",
     textAlign: "center",
   },
-  // Container para o menu lateral - agora animado
   menuContainer: {
     position: "absolute",
     top: Platform.OS === "ios" ? 50 : 60,
@@ -396,7 +449,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  // Estilo para a imagem do card
   cardImage: {
     width: 40,
     height: 40,
@@ -434,7 +486,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  // Estilo para o ícone da seção "Sobre Nós"
   aboutIcon: {
     width: 170,
     height: 100,
@@ -476,7 +527,6 @@ const styles = StyleSheet.create({
     elevation: 1,
     right: 15,
   },
-  // Estilo para as imagens dos valores
   valueImage: {
     width: 50,
     height: 50,

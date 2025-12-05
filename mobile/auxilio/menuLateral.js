@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,18 +11,71 @@ import {
   Platform,
   Image,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import adultoImg from "../photos/adulto.png";
+import avatar2 from "../photos/foto1.png";
+import avatar3 from "../photos/foto2.png";
+import avatar4 from "../photos/foto3.png";
+import avatar5 from "../photos/foto4.png";
+import avatar6 from "../photos/foto5.png";
+import avatar7 from "../photos/foto6.png";
 
 const { width, height } = Dimensions.get("window");
 
 const MenuLateral = ({ navigation }) => {
   const [menuAberto, setMenuAberto] = useState(false);
+  const [fotoPerfil, setFotoPerfil] = useState(adultoImg);
+  const [nomeUsuario, setNomeUsuario] = useState("Adulto");
 
   const animacaoLinha1 = useRef(new Animated.Value(0)).current;
   const animacaoLinha2 = useRef(new Animated.Value(0)).current;
   const animacaoLinha3 = useRef(new Animated.Value(0)).current;
   const animacaoMenu = useRef(new Animated.Value(width)).current;
+
+  // Mapeamento de avatares
+  const avatares = {
+    avatar1: adultoImg,
+    avatar2: avatar2,
+    avatar3: avatar3,
+    avatar4: avatar4,
+    avatar5: avatar5,
+    avatar6: avatar6,
+    avatar7: avatar7,
+  };
+
+  // Carregar dados do usuário
+  useEffect(() => {
+    carregarDadosUsuario();
+
+    // Configurar atualização periódica
+    const interval = setInterval(carregarDadosUsuario, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const carregarDadosUsuario = async () => {
+    try {
+      const savedUser = await AsyncStorage.getItem("usuarioData");
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+
+        // Atualizar nome
+        if (parsedUser.nome && parsedUser.nome !== nomeUsuario) {
+          setNomeUsuario(parsedUser.nome);
+        }
+
+        // Atualizar foto do perfil
+        if (parsedUser.avatarId && avatares[parsedUser.avatarId]) {
+          setFotoPerfil(avatares[parsedUser.avatarId]);
+        } else if (parsedUser.fotoPerfil) {
+          setFotoPerfil(parsedUser.fotoPerfil);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados do usuário:", error);
+    }
+  };
 
   const toggleMenu = () => {
     const novoEstado = !menuAberto;
@@ -102,7 +155,7 @@ const MenuLateral = ({ navigation }) => {
   };
 
   const menuItems = [
-    { id: 1, titulo: "Início", tela: "Home" },
+    { id: 1, titulo: "Início", tela: "Interface" },
     { id: 2, titulo: "Perfil", tela: "Perfil" },
     { id: 3, titulo: "Jogos", tela: "Jogos" },
     { id: 4, titulo: "Cursos", tela: "Cursos" },
@@ -114,8 +167,22 @@ const MenuLateral = ({ navigation }) => {
     toggleMenu();
     setTimeout(() => {
       if (navigation && navigation.navigate) {
+        if (
+          tela === "Interface" &&
+          navigation.state?.routeName === "Interface"
+        ) {
+          return;
+        }
         navigation.navigate(tela);
       }
+    }, 300);
+  };
+
+  const handleSair = () => {
+    toggleMenu();
+    setTimeout(() => {
+      // Lógica para sair do app
+      alert("Funcionalidade de sair será implementada");
     }, 300);
   };
 
@@ -162,14 +229,21 @@ const MenuLateral = ({ navigation }) => {
             <View style={styles.perfilContainer}>
               <View style={styles.avatarContainer}>
                 <Image
-                  source={adultoImg}
+                  source={fotoPerfil}
                   style={styles.avatar}
                   resizeMode="cover"
                 />
+                <View style={styles.statusOnline} />
               </View>
               <View style={styles.perfilInfo}>
-                <Text style={styles.nomeUsuario}>Adulto</Text>
+                <Text style={styles.nomeUsuario}>{nomeUsuario}</Text>
                 <Text style={styles.subtituloUsuario}>Minha Conta</Text>
+                <TouchableOpacity
+                  style={styles.verPerfilButton}
+                  onPress={() => navegarPara("Perfil")}
+                >
+                  <Text style={styles.verPerfilTexto}>Ver Perfil Completo</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -191,10 +265,19 @@ const MenuLateral = ({ navigation }) => {
               <TouchableOpacity
                 key={item.id}
                 style={styles.itemMenu}
-                onPress={() => navegarPara(item.tela)}
+                onPress={() =>
+                  item.titulo === "Sair" ? handleSair() : navegarPara(item.tela)
+                }
                 activeOpacity={0.7}
               >
-                <Text style={styles.textoItem}>{item.titulo}</Text>
+                <Text
+                  style={[
+                    styles.textoItem,
+                    item.titulo === "Sair" && styles.textoSair,
+                  ]}
+                >
+                  {item.titulo}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -202,6 +285,9 @@ const MenuLateral = ({ navigation }) => {
           {/* Rodapé */}
           <View style={styles.rodapeMenu}>
             <Text style={styles.textoRodape}>Versão 1.0.0</Text>
+            <Text style={styles.textoRodape}>
+              Avatar Atualizado Automaticamente
+            </Text>
           </View>
         </SafeAreaView>
       </Animated.View>
@@ -222,12 +308,14 @@ const styles = StyleSheet.create({
   botaoMenu: {
     position: "absolute",
     top: Platform.OS === "ios" ? 50 : 60,
-    right: 20, // Menu à DIREITA
+    right: 20,
     zIndex: 10001,
     width: 40,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0, 0, 139, 0.8)",
+    borderRadius: 20,
   },
   containerIcone: {
     width: 24,
@@ -264,11 +352,11 @@ const styles = StyleSheet.create({
   menuLateral: {
     position: "absolute",
     top: 0,
-    right: 0, // Menu sai da DIREITA
+    right: 0,
     bottom: 0,
-    width: width * 0.65, // Ocupa 75% da largura da tela
-    height: height, // Cobre a altura TOTAL da tela
-    backgroundColor: "rgba(6, 32, 133, 0.61)",
+    width: width * 0.65,
+    height: height,
+    backgroundColor: "rgba(6, 31, 133, 0.65)",
     zIndex: 9999,
     borderLeftWidth: 1,
     borderLeftColor: "rgba(255, 255, 255, 0.1)",
@@ -290,36 +378,65 @@ const styles = StyleSheet.create({
   cabecalhoMenu: {
     padding: 20,
     paddingTop: Platform.OS === "ios" ? 60 : 70,
+    backgroundColor: "rgba(0, 0, 139, 0.3)",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
   perfilContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
   avatarContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     marginRight: 15,
     overflow: "hidden",
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderWidth: 3,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    position: "relative",
   },
   avatar: {
     width: "100%",
     height: "100%",
   },
+  statusOnline: {
+    position: "absolute",
+    bottom: 5,
+    right: 5,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#4CAF50",
+    borderWidth: 2,
+    borderColor: "rgba(6, 32, 133, 0.95)",
+  },
   perfilInfo: {
     flex: 1,
   },
   nomeUsuario: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "700",
     color: "#fff",
-    marginBottom: 2,
+    marginBottom: 4,
   },
   subtituloUsuario: {
-    fontSize: 13,
-    color: "rgba(255, 255, 255, 0.6)",
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.7)",
+    marginBottom: 8,
+  },
+  verPerfilButton: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 15,
+    marginTop: 5,
+  },
+  verPerfilTexto: {
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: "500",
   },
   divisor: {
     height: 1,
@@ -346,11 +463,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginVertical: 2,
     borderRadius: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.05)",
   },
   textoItem: {
     fontSize: 16,
     color: "#fff",
     fontWeight: "500",
+  },
+  textoSair: {
+    color: "#FF6B6B",
   },
   rodapeMenu: {
     padding: 20,
@@ -361,6 +483,8 @@ const styles = StyleSheet.create({
   textoRodape: {
     fontSize: 11,
     color: "rgba(255, 255, 255, 0.4)",
+    textAlign: "center",
+    marginBottom: 5,
   },
 });
 

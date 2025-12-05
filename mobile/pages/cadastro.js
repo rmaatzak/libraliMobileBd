@@ -10,14 +10,15 @@ import {
   Alert,
   Keyboard,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from "react-native";
 import { useFonts } from "expo-font";
 
 const { width, height } = Dimensions.get("window");
 
 // Funções auxiliares para responsividade
-const wp = pct => (width * pct) / 100;
-const hp = pct => (height * pct) / 100;
+const wp = (pct) => (width * pct) / 100;
+const hp = (pct) => (height * pct) / 100;
 
 const colors = ["#87CEFA", "#87CEFA"];
 
@@ -36,7 +37,7 @@ function FloatingBubbles() {
   }
 
   useEffect(() => {
-    circlesRef.current.forEach(circle => {
+    circlesRef.current.forEach((circle) => {
       const animate = () => {
         Animated.parallel([
           Animated.timing(circle.y, {
@@ -100,25 +101,32 @@ export default function Cadastro({ navigation }) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [carregando, setCarregando] = useState(false);
 
   const contentPosition = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => {
-      Animated.timing(contentPosition, {
-        toValue: -hp(10),
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    });
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        Animated.timing(contentPosition, {
+          toValue: -hp(10),
+          duration: 250,
+          useNativeDriver: true,
+        }).start();
+      }
+    );
 
-    const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => {
-      Animated.timing(contentPosition, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    });
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        Animated.timing(contentPosition, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }).start();
+      }
+    );
 
     return () => {
       keyboardDidShowListener.remove();
@@ -178,6 +186,7 @@ export default function Cadastro({ navigation }) {
               placeholderTextColor="#888"
               value={nome}
               onChangeText={setNome}
+              editable={!carregando}
             />
             <TextInput
               style={styles.input}
@@ -187,6 +196,7 @@ export default function Cadastro({ navigation }) {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              editable={!carregando}
             />
             <TextInput
               style={styles.input}
@@ -195,16 +205,22 @@ export default function Cadastro({ navigation }) {
               secureTextEntry
               value={senha}
               onChangeText={setSenha}
+              editable={!carregando}
             />
           </View>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, carregando && styles.buttonDisabled]}
               onPress={handleProsseguir}
               activeOpacity={0.8}
+              disabled={carregando}
             >
-              <Text style={styles.buttonText}>Prosseguir</Text>
+              {carregando ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.buttonText}>Prosseguir</Text>
+              )}
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -276,5 +292,8 @@ const styles = StyleSheet.create({
     fontFamily: "Strawford",
     color: "#fff",
     fontSize: wp(4.3),
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });
