@@ -198,8 +198,14 @@ app.post("/api/usuarios/logout", verificarToken, (req, res) => {
   res.status(200).json({ mensagem: "Logout realizado com sucesso" });
 });
 
+// ====== TRATAMENTO DE ERROS GLOBAIS ======
+app.use((err, req, res, next) => {
+  console.error('❌ Erro não tratado:', err);
+  res.status(500).json({ erro: "Erro interno do servidor" });
+});
+
 // ====== INICIAR SERVIDOR ======
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   console.log(`🔐 Sistema de autenticação JWT ativo!`);

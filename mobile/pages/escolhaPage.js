@@ -164,7 +164,7 @@ export default function EscolhaPage() {
               console.log("🚀 Navegando para:", selected === "adulto" ? "AdultoTela" : "KidsTela");
               // ✅ Navega para a tela correta baseado na escolha
               if (selected === "adulto") {
-                navigation.navigate("AdultoTela");
+                navigation.navigate("Interface");
               } else {
                 navigation.navigate("KidsTela");
               }
